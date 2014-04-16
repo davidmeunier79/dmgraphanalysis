@@ -1,1 +1,3 @@
-from correl_mat import print_toto
+import correl_mat
+import modularity
+import coclass
