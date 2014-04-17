@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 
+from dmgraphanalysis.plot_igraph import *
 
 ############################################## Compute thresholded Z_list ###########################################
 
@@ -8,9 +10,9 @@ def compute_signif_conf_Z_list(cor_mat_file,conf_cor_mat_file,coords_file):
     import nibabel as nib
     import numpy as np
     
-    from utils_cor import export_List_net_from_list,export_Louvain_net_from_list
-    from utils_cor import return_signif_conf_net_list
-    from utils_plot import plot_cormat
+    from dmgraphanalysis.utils_cor import export_List_net_from_list,export_Louvain_net_from_list
+    from dmgraphanalysis.utils_cor import return_signif_conf_net_list
+    from dmgraphanalysis.utils_plot import plot_cormat
     
     print "loading cor_mat_file"
     
@@ -72,9 +74,9 @@ def compute_signif_conf_Z_list(cor_mat_file,conf_cor_mat_file,coords_file):
     #import numpy as np
     
     #from define_variables import cor_conf_thr,min_dist_between_voxels
-    #from utils_cor import export_List_net_from_list,export_Louvain_net_from_list
+    #from dmgraphanalysis.utils_cor import export_List_net_from_list,export_Louvain_net_from_list
     
-    #from utils_cor import compute_dist_matrix,return_dist_thr_conf_net_list
+    #from dmgraphanalysis.utils_cor import compute_dist_matrix,return_dist_thr_conf_net_list
     
     #print "loading cor_mat_file"
     
@@ -132,9 +134,9 @@ def compute_signif_conf_Z_list(cor_mat_file,conf_cor_mat_file,coords_file):
     #import nibabel as nib
     #import numpy as np
     
-    #from utils_cor import export_List_net_from_list,export_Louvain_net_from_list
+    #from dmgraphanalysis.utils_cor import export_List_net_from_list,export_Louvain_net_from_list
     
-    #from utils_cor import compute_dist_matrix,return_dist_thr_net_list
+    #from dmgraphanalysis.utils_cor import compute_dist_matrix,return_dist_thr_net_list
     
     #print "loading conf_cor_mat_file"
     
@@ -190,9 +192,9 @@ def compute_signif_conf_Z_list(cor_mat_file,conf_cor_mat_file,coords_file):
     #import numpy as np
     
     #from define_variables import Z_thr,max_dist_between_voxels
-    #from utils_cor import export_List_net_from_list,export_Louvain_net_from_list
+    #from dmgraphanalysis.utils_cor import export_List_net_from_list,export_Louvain_net_from_list
     
-    #from utils_cor import return_maxdist_thr_net_list,compute_dist_matrix
+    #from dmgraphanalysis.utils_cor import return_maxdist_thr_net_list,compute_dist_matrix
     
     #print "loading conf_cor_mat_file"
     
@@ -247,9 +249,9 @@ def compute_signif_conf_Z_list(cor_mat_file,conf_cor_mat_file,coords_file):
     #import numpy as np
     
     #from define_variables import Z_thr,max_dist_between_voxels
-    #from utils_cor import export_List_net_from_list,export_Louvain_net_from_list
+    #from dmgraphanalysis.utils_cor import export_List_net_from_list,export_Louvain_net_from_list
     
-    #from utils_cor import return_maxdist_net_list,compute_dist_matrix
+    #from dmgraphanalysis.utils_cor import return_maxdist_net_list,compute_dist_matrix
     
     #print "loading conf_cor_mat_file"
     
@@ -311,9 +313,9 @@ def compute_signif_conf_Z_list(cor_mat_file,conf_cor_mat_file,coords_file):
     #import numpy as np
     
     #from define_variables import min_dist_between_voxels
-    #from utils_cor import export_List_net_from_list,export_Louvain_net_from_list
+    #from dmgraphanalysis.utils_cor import export_List_net_from_list,export_Louvain_net_from_list
     
-    #from utils_cor import compute_dist_matrix,return_dist_net_list
+    #from dmgraphanalysis.utils_cor import compute_dist_matrix,return_dist_net_list
     
     #print "loading conf_cor_mat_file"
     
@@ -368,9 +370,9 @@ def compute_signif_conf_Z_list(cor_mat_file,conf_cor_mat_file,coords_file):
     #import numpy as np
     
     #from define_variables import Z_thr
-    #from utils_cor import export_List_net_from_list,export_Louvain_net_from_list
+    #from dmgraphanalysis.utils_cor import export_List_net_from_list,export_Louvain_net_from_list
     
-    #from utils_cor import return_thr_net_list
+    #from dmgraphanalysis.utils_cor import return_thr_net_list
     
     #print "loading conf_cor_mat_file"
     
@@ -455,7 +457,7 @@ def export_mod_mask_file(Louvain_mod_file,Louvain_node_file,coords_file,mask_fil
     import nibabel as nib
     import os
     
-    from utils_cor import return_mod_mask_corres,read_Louvain_corres_nodes,read_mod_file
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_Louvain_corres_nodes,read_mod_file
 
     print 'Loading node_corres'
     
@@ -563,7 +565,7 @@ def export_lol_mask_file(rada_lol_file,Pajek_net_file,coords_file,mask_file):
     
     import nibabel as nib
     import os
-    from utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes
 
     print 'Loading Pajek_net_file for reading node_corres'
     
@@ -627,7 +629,7 @@ def compute_mod_average_ts_louvain(ts_mat_file,coords_file,Louvain_mod_file,Louv
     import os
     import numpy as np
 
-    from utils_cor import compute_average_ts_by_module_corres,read_mod_file,read_Louvain_corres_nodes
+    from dmgraphanalysis.utils_cor import compute_average_ts_by_module_corres,read_mod_file,read_Louvain_corres_nodes
 
     print 'load coords'
     
@@ -674,7 +676,7 @@ def compute_mod_average_ts_rada(ts_mat_file,coords_file,rada_lol_file,Pajek_net_
     import os
     import numpy as np
 
-    from utils_cor import compute_average_ts_by_module_corres,read_lol_file,read_Pajek_corres_nodes
+    from dmgraphanalysis.utils_cor import compute_average_ts_by_module_corres,read_lol_file,read_Pajek_corres_nodes
 
     print 'load coords'
     
@@ -723,7 +725,7 @@ def compute_mod_cor_mat(mod_average_ts_file,regressor_file):
     import os
     import numpy as np
 
-    from utils_cor import compute_weighted_cor_mat_non_zeros
+    from dmgraphanalysis.utils_cor import compute_weighted_cor_mat_non_zeros
 
     print 'load regressor_vect'
     
@@ -763,7 +765,7 @@ def plot_dist_matrix(dist_mat_file):
     import nibabel as nib
     
     from nipype.utils.filemanip import split_filename as split_f
-    from utils_plot import plot_cormat,plot_hist
+    from dmgraphanalysis.utils_plot import plot_cormat,plot_hist
     
     ######### dist_mat
     
@@ -798,8 +800,8 @@ def plot_igraph_modules_conf_cor_mat_louvain(Louvain_mod_file,Louvain_node_file,
     import os
     import csv
     
-    from utils_cor import return_mod_mask_corres,read_Louvain_corres_nodes,read_mod_file,read_Louvain_net_file
-    from plot_igraph import plot_3D_igraph_modules_Z_list
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_Louvain_corres_nodes,read_mod_file,read_Louvain_net_file
+    from dmgraphanalysis.plot_igraph import plot_3D_igraph_modules_Z_list
 
     print 'Loading node_corres'
     
@@ -859,9 +861,9 @@ def plot_igraph_modules_conf_cor_mat_rada(rada_lol_file,Pajek_net_file,coords_fi
     import os
     import csv
         
-    from utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes,read_List_net_file
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes,read_List_net_file
     
-    from plot_igraph import plot_3D_igraph_modules_Z_list
+    from dmgraphanalysis.plot_igraph import plot_3D_igraph_modules_Z_list
 
     print 'Loading node_corres'
     
@@ -917,16 +919,15 @@ def plot_igraph_modules_conf_cor_mat_rada(rada_lol_file,Pajek_net_file,coords_fi
 def plot_igraph_matrix(mod_cor_mat_file,mod_average_coords_file):
 
     import os
-    import igraph as ig
+    #import igraph as ig
     import numpy as np
     
-    from plot_igraph import plot_3D_igraph_weighted_signed_matrix
+    from dmgraphanalysis.plot_igraph import plot_3D_igraph_weighted_signed_matrix
     
     print 'loading module (node) coordinates'
     
     #mod_average_coords = np.loadtxt(mod_average_coords_file)
     
-    import csv
 
     print 'load coords'
     

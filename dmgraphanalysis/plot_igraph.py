@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+Support function for igraph
+"""
 
 import numpy as np
 import os
@@ -9,8 +13,6 @@ import cairo as ca
 
 from utils_dtype_coord import where_in_coords,find_index_in_coords
 import math
-
-from define_variables import angle_alpha,angle_beta
 
 #igraph_colors = ['mediumvioletred',
 #'palegoldenrod',
@@ -1561,6 +1563,10 @@ def project2D_np(node_coords):
     
     ##0/0
     
+    
+    angle_alpha = 0.0
+    angle_beta = 0.0
+
     print node_coords.shape
     
     #layout2D = project2D(node_coords.tolist(),0,0)

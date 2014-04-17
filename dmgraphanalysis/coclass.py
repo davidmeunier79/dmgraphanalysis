@@ -1,4 +1,6 @@
 
+from dmgraphanalysis.utils_cor import *
+
     ################### common to radatools and louvain
 def plot_signif_nbs_adj_mat(nbs_adj_mat_file,gm_mask_coords_file,gm_mask_file):
 
@@ -7,13 +9,13 @@ def plot_signif_nbs_adj_mat(nbs_adj_mat_file,gm_mask_coords_file,gm_mask_file):
     import nibabel as nib
     import csv
     
-    from plot_igraph import plot_igraph_3D_int_label_mat
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_int_label_mat
     
     from nipype.utils.filemanip import split_filename as split_f
     
-    from utils_plot import plot_cormat
+    from dmgraphanalysis.utils_plot import plot_cormat
     
-    from utils_cor import return_img
+    from dmgraphanalysis.utils_cor import return_img
     
     print 'load adj matrix'
     
@@ -118,7 +120,7 @@ def norm_coclass_to_net_list_thr(coclass_matrix_file,threshold):
     
     import numpy as np
     
-    from utils_cor import return_int_net_list,export_List_net_from_list
+    from dmgraphanalysis.utils_cor import return_int_net_list,export_List_net_from_list
     
 
     coclass_mat = np.load(coclass_matrix_file)
@@ -154,7 +156,7 @@ def coclass_to_net_list_thr(coclass_matrix_file):
     
     import numpy as np
     
-    from utils_cor import return_thr_int_net_list,export_List_net_from_list
+    from dmgraphanalysis.utils_cor import return_thr_int_net_list,export_List_net_from_list
     
 
     coclass_mat = np.load(coclass_matrix_file)
@@ -187,7 +189,7 @@ def export_lol_mask_coclass_file(rada_lol_file,Pajek_net_file,gm_coords_file,mas
     
     import nibabel as nib
     import os
-    from utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes
 
     print 'Loading Pajek_net_file for reading node_corres'
     
@@ -251,9 +253,9 @@ def plot_igraph_modules_coclass_rada(rada_lol_file,Pajek_net_file,net_list_file,
     import os
     import csv
         
-    from utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes,read_List_net_file
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes,read_List_net_file
     
-    from plot_igraph import plot_3D_igraph_modules_net_list
+    from dmgraphanalysis.plot_igraph import plot_3D_igraph_modules_net_list
 
     print 'loading labels'
     
@@ -305,7 +307,7 @@ def plot_igraph_modules_coclass_rada(rada_lol_file,Pajek_net_file,net_list_file,
     
     ################################################# reorder
     
-def reorder_hclust_matrix(coclass_matrix_file):
+def reorder_hclust_matrix(coclass_matrix_file,method_hie = 'ward'):
     
     #import matplotlib.pyplot as plt
     import os
@@ -315,9 +317,7 @@ def reorder_hclust_matrix(coclass_matrix_file):
     import numpy as np
     
     
-    from utils_cor import return_hierachical_order
-    from define_variables import subject_nums,method_hie
-    
+    from dmgraphanalysis.utils_cor import return_hierachical_order
     
     coclass_mat = np.load(coclass_matrix_file)
     
@@ -327,21 +327,21 @@ def reorder_hclust_matrix(coclass_matrix_file):
     
     #print node_order_vect
     
-    reorder_coclass_matrix_file = os.path.abspath('reorder_coclass_matrix_' + method_hie + '.npy')
+    reorder_coclass_matrix_file = os.path.abspath('reorder_coclass_matrix.npy')
     
     np.save(reorder_coclass_matrix_file,reorder_coclass_matrix)
     
-    node_order_vect_file = os.path.abspath('node_order_vect_' + method_hie + '.npy')
+    node_order_vect_file = os.path.abspath('node_order_vect.npy')
     
     np.save(node_order_vect_file,node_order_vect)
     
-    node_order_vect_file = os.path.abspath('node_order_vect_' + method_hie + '.txt')
+    node_order_vect_file = os.path.abspath('node_order_vect.txt')
     
     np.savetxt(node_order_vect_file,node_order_vect,fmt = '%d')
     
     return reorder_coclass_matrix_file,node_order_vect_file
     
-def reorder_hclust_matrix_labels(coclass_matrix_file,labels_file,info_file):
+def reorder_hclust_matrix_labels(coclass_matrix_file,labels_file,info_file,method_hie):
     
     #import matplotlib.pyplot as plt
     import os
@@ -351,8 +351,8 @@ def reorder_hclust_matrix_labels(coclass_matrix_file,labels_file,info_file):
     import numpy as np
     
     
-    from utils_cor import return_hierachical_order
-    from define_variables import method_hie
+    from dmgraphanalysis.utils_cor import return_hierachical_order
+     
     
     
     print 'loading labels'
@@ -389,15 +389,15 @@ def reorder_hclust_matrix_labels(coclass_matrix_file,labels_file,info_file):
     #print 'reordered labels'
     #print np_reordered_labels
     
-    reorder_coclass_matrix_file = os.path.abspath('reorder_coclass_matrix_' + method_hie + '.npy')
+    reorder_coclass_matrix_file = os.path.abspath('reorder_coclass_matrix.npy')
     
     np.save(reorder_coclass_matrix_file,reorder_coclass_matrix)
     
-    node_order_vect_file = os.path.abspath('node_order_vect_' + method_hie + '.npy')
+    node_order_vect_file = os.path.abspath('node_order_vect.npy')
     
     np.save(node_order_vect_file,node_order_vect)
     
-    node_order_vect_file = os.path.abspath('node_order_vect_' + method_hie + '.txt')
+    node_order_vect_file = os.path.abspath('node_order_vect.txt')
     
     np.savetxt(node_order_vect_file,node_order_vect,fmt = '%d')
     
@@ -421,10 +421,9 @@ def reorder_coclass_matrix_labels_coords_with_force_order(coclass_matrix_file,la
     import os
     
     from nipype.utils.filemanip import split_filename as split_f
-    from define_variables import subject_nums,method_hie
     
-    from utils_plot import plot_ranged_cormat
-    #from utils_plot import plot_cormat
+    from dmgraphanalysis.utils_plot import plot_ranged_cormat
+    #from dmgraphanalysis.utils_plot import plot_cormat
     
     print 'loading node order'
     
@@ -501,7 +500,7 @@ def plot_igraph_coclass_matrix_labels(coclass_matrix_file,gm_mask_coords_file,th
     import os
     import pylab as pl
     
-    from plot_igraph import plot_igraph_3D_int_mat_labels
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_int_mat_labels
     
     from nipype.utils.filemanip import split_filename as split_f
     
@@ -539,7 +538,7 @@ def plot_igraph_coclass_matrix(coclass_matrix_file,gm_mask_coords_file,threshold
     import os
     import pylab as pl
     
-    from plot_igraph import plot_igraph_3D_int_mat
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_int_mat
     
     from nipype.utils.filemanip import split_filename as split_f
     
@@ -636,9 +635,8 @@ def plot_coclass_matrix_labels(coclass_matrix_file,labels_file):
     import pylab as pl
     
     from nipype.utils.filemanip import split_filename as split_f
-    from define_variables import subject_nums,method_hie
     
-    from utils_plot import plot_hist,plot_cormat
+    from dmgraphanalysis.utils_plot import plot_hist,plot_cormat
     
     print 'loading labels'
     labels = [line.strip() for line in open(labels_file)]
@@ -655,7 +653,7 @@ def plot_coclass_matrix_labels(coclass_matrix_file,labels_file):
     
     print 'plotting coclass matrix heatmap'
     
-    plot_heatmap_coclass_matrix_file =  os.path.abspath('heatmap_' + fname + '_method_' + method_hie + '.eps')
+    plot_heatmap_coclass_matrix_file =  os.path.abspath('heatmap_' + fname + '.eps')
     
     plot_cormat(plot_heatmap_coclass_matrix_file,coclass_matrix,labels)
     
@@ -665,7 +663,7 @@ def plot_coclass_matrix_labels(coclass_matrix_file,labels_file):
      
     plot_hist_coclass_matrix_file = os.path.abspath('hist_coclass_matrix.eps')
     
-    plot_hist(plot_hist_coclass_matrix_file,coclass_matrix,nb_bins = len(subject_nums))
+    plot_hist(plot_hist_coclass_matrix_file,coclass_matrix)
     
     return plot_hist_coclass_matrix_file,plot_heatmap_coclass_matrix_file
     
@@ -677,9 +675,8 @@ def plot_order_coclass_matrix_labels(coclass_matrix_file,node_order_vect_file,la
     import os
     
     from nipype.utils.filemanip import split_filename as split_f
-    from define_variables import subject_nums,method_hie
     
-    from utils_plot import plot_cormat
+    from dmgraphanalysis.utils_plot import plot_cormat
     
     print 'loading labels'
     labels = [line.strip() for line in open(labels_file)]
@@ -713,7 +710,7 @@ def plot_order_coclass_matrix_labels(coclass_matrix_file,node_order_vect_file,la
     
     print 'plotting reorder heatmap'
     
-    plot_reordered_coclass_matrix_file =  os.path.abspath('reordered_heatmap_' + fname + '_method_' + method_hie + '.eps')
+    plot_reordered_coclass_matrix_file =  os.path.abspath('reordered_heatmap_' + fname + '.eps')
     
     plot_cormat(plot_reordered_coclass_matrix_file,reordered_coclass_mat,list_reordered_labels)
     
@@ -725,10 +722,9 @@ def plot_coclass_matrix_labels_range(coclass_matrix_file,labels_file,list_value_
     import os
     
     from nipype.utils.filemanip import split_filename as split_f
-    from define_variables import subject_nums,method_hie
     
-    from utils_plot import plot_ranged_cormat
-    #from utils_plot import plot_cormat
+    from dmgraphanalysis.utils_plot import plot_ranged_cormat
+    #from dmgraphanalysis.utils_plot import plot_cormat
     
     print 'loading labels'
     labels = [line.strip() for line in open(labels_file)]
@@ -761,9 +757,8 @@ def plot_coclass_matrix_labels_range(coclass_matrix_file,labels_file,list_value_
     #import os
     
     #from nipype.utils.filemanip import split_filename as split_f
-    #from define_variables import subject_nums,method_hie
     
-    #from utils_plot import plot_cormat
+    #from dmgraphanalysis.utils_plot import plot_cormat
     
     #print 'loading labels'
     #labels = [line.strip() for line in open(labels_file)]
@@ -810,7 +805,7 @@ def plot_coclass_matrix_labels_range(coclass_matrix_file,labels_file,list_value_
     
     #print 'plotting reorder heatmap'
     
-    #plot_reordered_coclass_matrix_file =  os.path.abspath('reordered_heatmap_' + fname + '_method_' + method_hie + '.eps')
+    #plot_reordered_coclass_matrix_file =  os.path.abspath('reordered_heatmap_' + fname + '.eps')
     
     #plot_cormat(plot_reordered_coclass_matrix_file,reordered_coclass_mat,list_reordered_labels)
     
@@ -826,8 +821,8 @@ def compute_coclass_by_coclassmod(mod_files,coords_files,node_corres_files,gm_ma
 
     #import nibabel as nib
     
-    from utils_cor import return_coclass_mat_list_by_module,return_coclass_mat
-    from utils_cor import read_Pajek_corres_nodes,read_lol_file
+    from dmgraphanalysis.utils_cor import return_coclass_mat_list_by_module,return_coclass_mat
+    from dmgraphanalysis.utils_cor import read_Pajek_corres_nodes,read_lol_file
     
     print 'loading gm mask corres'
     
@@ -929,8 +924,8 @@ def prepare_nbs_stats_rada(mod_files,coords_files,node_corres_files,gm_mask_coor
 
     #import nibabel as nib
     
-    from utils_cor import return_coclass_mat,return_hierachical_order
-    from utils_cor import read_Pajek_corres_nodes,read_lol_file
+    from dmgraphanalysis.utils_cor import return_coclass_mat,return_hierachical_order
+    from dmgraphanalysis.utils_cor import read_Pajek_corres_nodes,read_lol_file
     
     print 'loading gm mask corres'
     
@@ -1035,4 +1030,108 @@ def prepare_nbs_stats_rada(mod_files,coords_files,node_corres_files,gm_mask_coor
     
     
     return group_coclass_matrix_file,sum_coclass_matrix_file,sum_possible_edge_matrix_file,norm_coclass_matrix_file
+        
+########################################################### only function to be use in run_mean_correl.py #################################################
+
+def prepare_mean_correlation_matrices(cor_mat_files,coords_files,gm_mask_coords_file):
+    
+    import numpy as np
+    import os
+
+    #import nibabel as nib
+    
+    from dmgraphanalysis.utils_cor import return_corres_correl_mat
+    #from utils_cor import read_Pajek_corres_nodes,read_lol_file
+    
+    print 'loading gm mask corres'
+    
+    gm_mask_coords = np.loadtxt(gm_mask_coords_file)
+    
+    print gm_mask_coords.shape
+        
+    #### read matrix from the first group
+    #print Z_cor_mat_files
+    
+    sum_cor_mat_matrix = np.zeros((gm_mask_coords.shape[0],gm_mask_coords.shape[0]),dtype = float)
+    print sum_cor_mat_matrix.shape
+    
+    sum_possible_edge_matrix = np.zeros((gm_mask_coords.shape[0],gm_mask_coords.shape[0]),dtype = int)
+    print sum_possible_edge_matrix.shape
+    
+            
+    group_cor_mat_matrix = np.zeros((gm_mask_coords.shape[0],gm_mask_coords.shape[0],len(cor_mat_files)),dtype = float)
+    print group_cor_mat_matrix.shape
+    
+    if len(cor_mat_files) != len(coords_files):
+        print "warning, length of cor_mat_files, coords_files are imcompatible {} {} {}".format(len(cor_mat_files),len(coords_files))
+    
+    for index_file in range(len(cor_mat_files)):
+        
+        print cor_mat_files[index_file]
+        
+        if os.path.exists(cor_mat_files[index_file]) and os.path.exists(coords_files[index_file]):
+        
+            Z_cor_mat = np.load(cor_mat_files[index_file])
+            print Z_cor_mat.shape
+            
+            
+            coords = np.loadtxt(coords_files[index_file])
+            #print coords.shape
+            
+            
+            
+            corres_cor_mat,possible_edge_mat = return_corres_correl_mat(Z_cor_mat,coords,gm_mask_coords)
+            
+            
+            np.fill_diagonal(corres_cor_mat,0)
+            
+            np.fill_diagonal(possible_edge_mat,1)
+            
+            sum_cor_mat_matrix += corres_cor_mat
+            
+            sum_possible_edge_matrix += possible_edge_mat
+            
+            
+            group_cor_mat_matrix[:,:,index_file] = corres_cor_mat
+            
+            
+        else:
+            print "Warning, one or more files between " + cor_mat_files[index_file] + ', ' + coords_files[index_file] + " do not exists"
+        
+        
+    group_cor_mat_matrix_file= os.path.abspath('group_cor_mat_matrix.npy')
+    
+    np.save(group_cor_mat_matrix_file,group_cor_mat_matrix)
+    
+    
+    print 'saving sum cor_mat matrix'
+    
+    sum_cor_mat_matrix_file = os.path.abspath('sum_cor_mat_matrix.npy')
+    
+    np.save(sum_cor_mat_matrix_file,sum_cor_mat_matrix)
+    
+    print 'saving sum_possible_edge matrix'
+    
+    sum_possible_edge_matrix_file = os.path.abspath('sum_possible_edge_matrix.npy')
+    
+    np.save(sum_possible_edge_matrix_file,sum_possible_edge_matrix)
+    
+    print 'saving avg_cor_mat_matrix'
+    
+    avg_cor_mat_matrix_file  = os.path.abspath('avg_cor_mat_matrix.npy')
+    
+    avg_cor_mat_matrix = np.zeros((gm_mask_coords.shape[0],gm_mask_coords.shape[0]),dtype = int)
+    
+    if (np.where(np.array(sum_possible_edge_matrix == 0)) != 0):
+    
+            avg_cor_mat_matrix = np.divide(np.array(sum_cor_mat_matrix,dtype = float),np.array(sum_possible_edge_matrix,dtype = float))
+            
+            np.save(avg_cor_mat_matrix_file,avg_cor_mat_matrix)
+    
+    else:
+            print "!!!!!!!!!!!!!!!!!!!!!!Breaking!!!!!!!!!!!!!!!!!!!!!!!!, found 0 elements in sum_cor_mat_matrix"
+            return
+            
+    return group_cor_mat_matrix_file,sum_cor_mat_matrix_file,sum_possible_edge_matrix_file,avg_cor_mat_matrix_file
+        
         

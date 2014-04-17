@@ -80,7 +80,7 @@ def compute_mean_ts_from_labelled_mask(file_4D,indexed_rois_file,coord_rois_file
     import numpy as np
     import nibabel as nib
     
-    from utils_plot import plot_signals
+    from dmgraphanalysis.utils_plot import plot_signals
     
     
     ## loading ROI coordinates
@@ -179,8 +179,8 @@ def mean_select_ts_with_mask(file_4D,mask_file,suffix):
     import nibabel as nib
     import numpy as np 
 
-    from utils_cor import mean_select_mask_data
-    from utils_plot import plot_signals
+    from dmgraphanalysis.utils_cor import mean_select_mask_data
+    from dmgraphanalysis.utils_plot import plot_signals
     
     print 'in select_ts_with_mask'
     
@@ -229,7 +229,7 @@ def regress_mvt_param(masked_ts_file,rp_file):
     
     #from scipy import stats
 
-    from utils_cor import regress_movement_parameters
+    from dmgraphanalysis.utils_cor import regress_movement_parameters
     
     print "load masked_ts_file"
     
@@ -273,9 +273,9 @@ def regress_covariates(masked_ts_file,rp_file,mean_wm_ts_file,mean_csf_ts_file):
     import nibabel as nib
     import numpy as np
     
-    #from utils_cor import regress_movement_wm_csf_parameters
-    from utils_cor import regress_movement_wm_csf_parameters_and_filter
-    from utils_plot import plot_signals,plot_sep_signals
+    #from dmgraphanalysis.utils_cor import regress_movement_wm_csf_parameters
+    from dmgraphanalysis.utils_cor import regress_movement_wm_csf_parameters_and_filter
+    from dmgraphanalysis.utils_plot import plot_signals,plot_sep_signals
     
     print "load mean_csf_ts_file" + str(mean_csf_ts_file)
     
@@ -553,7 +553,7 @@ def compute_var_correlation_matrix(resid_ts_file,regressor_file):
     import nibabel as nib
     import numpy as np
     
-    from utils_cor import return_var_cor_mat
+    from dmgraphanalysis.utils_cor import return_var_cor_mat
     
     
     print 'load regressor_vect'
@@ -602,13 +602,13 @@ def compute_var_correlation_matrix(resid_ts_file,regressor_file):
     return cor_mat_file,sderr_cor_mat_file,pval_cor_mat_file
     
     
-def compute_conf_correlation_matrix(resid_ts_file,regressor_file):
+def compute_conf_correlation_matrix(resid_ts_file,regressor_file,conf_interval_prob):
     
     import rpy,os
     import nibabel as nib
     import numpy as np
     
-    from utils_cor import return_conf_cor_mat
+    from dmgraphanalysis.utils_cor import return_conf_cor_mat
     
     
     print 'load regressor_vect'
@@ -625,7 +625,7 @@ def compute_conf_correlation_matrix(resid_ts_file,regressor_file):
     print resid_data_matrix.shape
     print np.transpose(resid_data_matrix).shape
     
-    cor_mat,Z_cor_mat,conf_cor_mat = return_conf_cor_mat(np.transpose(resid_data_matrix),regressor_vect)
+    cor_mat,Z_cor_mat,conf_cor_mat = return_conf_cor_mat(np.transpose(resid_data_matrix),regressor_vect,conf_interval_prob)
     
     print cor_mat.shape
     
@@ -660,7 +660,7 @@ def compute_Z_correlation_matrix(resid_ts_file,regressor_file):
     import nibabel as nib
     import numpy as np
     
-    from utils_cor import return_Z_cor_mat
+    from dmgraphanalysis.utils_cor import return_Z_cor_mat
     
     
     print 'load regressor_vect'
@@ -696,7 +696,7 @@ def plot_hist_var_cor_mat(cor_mat_file,sderr_cor_mat_file,pval_cor_mat_file):
     import os
     import numpy as np
     
-    from utils_plot import plot_hist,plot_cormat
+    from dmgraphanalysis.utils_plot import plot_hist,plot_cormat
     
     import nibabel as nib
     
@@ -775,7 +775,7 @@ def plot_hist_conf_cor_mat(cor_mat_file,Z_cor_mat_file,conf_cor_mat_file):
     
     from nipype.utils.filemanip import split_filename as split_f
     
-    from utils_plot import plot_hist,plot_cormat
+    from dmgraphanalysis.utils_plot import plot_hist,plot_cormat
     
     ############ cor_mat
     
@@ -848,7 +848,7 @@ def plot_hist_Z_cor_mat(Z_cor_mat_file):
     
     from nipype.utils.filemanip import split_filename as split_f
     
-    from utils_plot import plot_hist,plot_cormat
+    from dmgraphanalysis.utils_plot import plot_hist,plot_cormat
     
     ########## Z_cor_mat
     

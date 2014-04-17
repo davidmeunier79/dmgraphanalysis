@@ -505,7 +505,7 @@ def return_Z_cor_mat(ts_mat,regressor_vect):
     
     return Z_cor_mat
     
-def return_conf_cor_mat(ts_mat,regressor_vect):
+def return_conf_cor_mat(ts_mat,regressor_vect,conf_interval_prob):
     
     t1 = time.time()
     
