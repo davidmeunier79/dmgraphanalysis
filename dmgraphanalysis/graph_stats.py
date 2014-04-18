@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from utils_stats import *
+#from dmgraphanalysis.utils_stats import *
+#from dmgraphanalysis.utils_nbs import *
 
+#######################################################################################################################################################################################################
+################################################################################## Prepare data  ######################################################################################################
+#######################################################################################################################################################################################################
 
-################################################################################### prepare data radatools only #######################################################################################
+##### prepare data radatools only #######################################################################################
 
 def prepare_nbs_stats_rada(mod_files,coords_files,node_corres_files,gm_mask_coords_file):
     
@@ -12,8 +16,8 @@ def prepare_nbs_stats_rada(mod_files,coords_files,node_corres_files,gm_mask_coor
 
     #import nibabel as nib
     
-    from utils_cor import return_coclass_mat,return_hierachical_order
-    from utils_cor import read_Pajek_corres_nodes,read_lol_file
+    from dmgraphanalysis.utils_cor import return_coclass_mat,return_hierachical_order
+    from dmgraphanalysis.utils_cor import read_Pajek_corres_nodes,read_lol_file
     
     print 'loading gm mask corres'
     
@@ -112,7 +116,8 @@ def prepare_nbs_stats_rada(mod_files,coords_files,node_corres_files,gm_mask_coor
     return group_coclass_matrix_file,sum_coclass_matrix_file,group_nod_modular_domain_file
         
         
-################################################################# prepare data for stats on cor_mat 
+#### prepare data for stats on cor_mat 
+
 def prepare_nbs_stats_cor_mat(cor_mat_files,coords_files,gm_mask_coords_file):
     
     import numpy as np
@@ -120,8 +125,8 @@ def prepare_nbs_stats_cor_mat(cor_mat_files,coords_files,gm_mask_coords_file):
 
     #import nibabel as nib
     
-    from utils_cor import return_corres_correl_mat
-    #from utils_cor import read_Pajek_corres_nodes,read_lol_file
+    from dmgraphanalysis.utils_cor import return_corres_correl_mat
+    #from dmgraphanalysis.utils_cor import read_Pajek_corres_nodes,read_lol_file
     
     print 'loading gm mask corres'
     
@@ -199,7 +204,9 @@ def prepare_nbs_stats_cor_mat(cor_mat_files,coords_files,gm_mask_coords_file):
     
     return group_cor_mat_matrix_file,avg_cor_mat_matrix_file,group_vect_file
         
-#################################################################################### NBS stats ########################################################################
+#######################################################################################################################################################################################################
+################################################################################### NBS stats #########################################################################################################
+#######################################################################################################################################################################################################
 
 #def compute_coclass_rada_nbs_stats(group_coclass_matrix_file1,group_coclass_matrix_file2):
     
@@ -260,13 +267,13 @@ def prepare_nbs_stats_cor_mat(cor_mat_files,coords_files,gm_mask_coords_file):
     #import nibabel as nib
     #import csv
     
-    #from plot_igraph import plot_igraph_3D_int_label_mat
+    #from dmgraphanalysis.plot_igraph import plot_igraph_3D_int_label_mat
     
     #from nipype.utils.filemanip import split_filename as split_f
     
-    #from utils_plot import plot_cormat
+    #from dmgraphanalysis.utils_plot import plot_cormat
     
-    #from utils_cor import return_data_img_from_roi_mask
+    #from dmgraphanalysis.utils_cor import return_data_img_from_roi_mask
     
     #print 'load adj matrix'
     
@@ -394,15 +401,12 @@ def prepare_nbs_stats_cor_mat(cor_mat_files,coords_files,gm_mask_coords_file):
 
 
 
-
-
-
-
-############################################################################### pairwise/nodewise stats ################################################################
+        
+#######################################################################################################################################################################################################
+############################################################################ pairwise/nodewise stats ##################################################################################################
+#######################################################################################################################################################################################################
 
 ####### plotting
-
-
 def plot_signed_bin_mat_labels(signed_bin_mat_file,coords_file,labels_file):
 
     import os
@@ -410,9 +414,9 @@ def plot_signed_bin_mat_labels(signed_bin_mat_file,coords_file,labels_file):
     
     from nipype.utils.filemanip import split_filename as split_f
     
-    from plot_igraph import plot_igraph_3D_signed_bin_label_mat
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_signed_bin_label_mat
     
-    from utils_plot import plot_cormat
+    from dmgraphanalysis.utils_plot import plot_cormat
     
     print 'loading labels'
     
@@ -462,9 +466,9 @@ def plot_signed_bin_mat(signed_bin_mat_file,coords_file):
     
     from nipype.utils.filemanip import split_filename as split_f
     
-    from plot_igraph import plot_igraph_3D_signed_bin_label_mat
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_signed_bin_label_mat
     
-    from utils_plot import plot_cormat
+    from dmgraphanalysis.utils_plot import plot_cormat
     
     print 'load bin matrix'
     
@@ -508,9 +512,9 @@ def plot_bin_mat(bin_mat_file,coords_file):
     
     from nipype.utils.filemanip import split_filename as split_f
     
-    from plot_igraph import plot_igraph_3D_int_label_mat
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_int_label_mat
     
-    from utils_plot import plot_cormat
+    from dmgraphanalysis.utils_plot import plot_cormat
     
     print 'load bin matrix'
     
@@ -556,7 +560,7 @@ def plot_img_val_vect(val_vect_file,indexed_mask_file):
     
     from nipype.utils.filemanip import split_filename as split_f
     
-    from utils_img import return_data_img_from_roi_mask
+    from dmgraphanalysis.utils_img import return_data_img_from_roi_mask
     
     val_vect = np.load(val_vect_file)
     
@@ -576,67 +580,12 @@ def plot_img_val_vect(val_vect_file,indexed_mask_file):
     
 #################################### stats (using utils_stats)
 
-#def compute_coclass_pairwise_binom_stats(group_coclass_matrix_file1,group_coclass_matrix_file2):
-    
-    #import numpy as np
-    #import os
-
-    #import utils_stats as stats
-    
-    #from  define_variables import conf_interval_binom
-    
-    
-    #print "loading group_coclass_matrix1"
-    
-    #group_coclass_matrix1 = np.array(np.load(group_coclass_matrix_file1),dtype = float)
-    #print group_coclass_matrix1.shape
-    
-    
-    #print "loading group_coclass_matrix2"
-    
-    #group_coclass_matrix2 = np.array(np.load(group_coclass_matrix_file2),dtype = float)
-    #print group_coclass_matrix2.shape
-    
-    
-    #print "compute NBS stats"
-    
-    
-    ## check input matrices
-    #Ix,Jx,nx = group_coclass_matrix1.shape
-    #Iy,Jy,ny = group_coclass_matrix2.shape
-    
-    #assert Ix == Iy
-    #assert Jx == Jy
-    #assert Ix == Jx
-    #assert Iy == Jy
-    
-    
-    #d_stacked = np.concatenate( (group_coclass_matrix1,group_coclass_matrix2),axis = 2)
-
-    #del group_coclass_matrix1
-    #del group_coclass_matrix2
-    
-    #signif_bin_adj_mat  = stats.compute_pairwise_binom_adj_mat(d_stacked,nx,ny)
-    #degree_signif_bin_adj_mat = np.sum(signif_bin_adj_mat,axis = 1)
-    
-    #print 'save pairwise bin stat file'
-    
-    #signif_bin_adj_fdr_mat_file  = os.path.abspath('signif_bin_adj_'+ str(conf_interval_binom) +'.npy')
-    #np.save(signif_bin_adj_fdr_mat_file,signif_bin_adj_mat)
-    
-    #print "save degree pairwise stat file"
-    
-    #degree_signif_bin_adj_mat_file  = os.path.abspath('signif_bin_adj_'+ str(conf_interval_binom) +'.npy')
-    #np.save(degree_signif_bin_adj_mat_file,degree_signif_bin_adj_mat)
-    
-    #return signif_bin_adj_fdr_mat_file,degree_signif_bin_adj_mat_file
-    
 def compute_pairwise_ttest_stats_fdr(group_cormat_matrix_file1,group_cormat_matrix_file2,t_test_thresh_fdr):
     
     import numpy as np
     import os
 
-    import utils_stats as stats
+    import dmgraphanalysis.utils_stats as stats
     
     
     print "loading group_cormat_matrix1"
@@ -673,14 +622,12 @@ def compute_pairwise_ttest_stats_fdr(group_cormat_matrix_file1,group_cormat_matr
     return signif_signed_adj_fdr_mat_file
     
     
-def compute_pairwise_binom_stats_fdr(group_coclass_matrix_file1,group_coclass_matrix_file2):
+def compute_pairwise_binom_stats_fdr(group_coclass_matrix_file1,group_coclass_matrix_file2,conf_interval_binom_fdr):
     
     import numpy as np
     import os
 
-    import utils_stats as stats
-    from define_variables import conf_interval_binom_fdr
-    
+    import dmgraphanalysis.utils_stats as stats
     
     print "loading group_coclass_matrix1"
     
@@ -706,7 +653,7 @@ def compute_pairwise_binom_stats_fdr(group_coclass_matrix_file1,group_coclass_ma
     assert Ix == Jx
     assert Iy == Jy
     
-    signif_signed_adj_mat  = stats.compute_pairwise_binom_fdr(group_coclass_matrix1,group_coclass_matrix2)
+    signif_signed_adj_mat  = stats.compute_pairwise_binom_fdr(group_coclass_matrix1,group_coclass_matrix2,conf_interval_binom_fdr)
     
     print 'save pairwise signed stat file'
     
@@ -714,65 +661,13 @@ def compute_pairwise_binom_stats_fdr(group_coclass_matrix_file1,group_coclass_ma
     np.save(signif_signed_adj_fdr_mat_file,signif_signed_adj_mat)
     
     return signif_signed_adj_fdr_mat_file
-    
-#def compute_coclass_nodewise_ttest_stats(group_vect_file1,group_vect_file2):
 
-    #import numpy as np
-    #import os
-
-    #import utils_stats as stats
-    
-    #from  define_variables import conf_interval_binom
-    
-    
-    #print "loading group_vect1"
-    
-    #group_vect1 = np.array(np.load(group_vect_file1),dtype = float)
-    #print group_vect1.shape
-    
-    
-    #print "loading group_vect2"
-    
-    #group_vect2 = np.array(np.load(group_vect_file2),dtype = float)
-    #print group_vect2.shape
-    
-    
-    #print "compute NBS stats"
-    
-    
-    ## check input matrices
-    #Ix,nx = group_vect1.shape
-    #Iy,ny = group_vect2.shape
-    
-    #assert Ix == Iy
-    
-    
-    #d_stacked = np.concatenate( (group_vect1,group_vect2),axis = 1)
-
-    #del group_vect1
-    #del group_vect2
-    
-    #nodewise_t_val_vect = stats.compute_nodewise_t_test_vect(d_stacked,nx,ny)
-    
-    #print 'save nodewise stat file'
-    ##pairwise_binom_adj_mat_file  = os.path.abspath('pairwise_binom_adj_'+ str(conf_interval_binom) +'.txt')
-    ##np.savetxt(pairwise_binom_adj_mat_file,pairwise_binom_adj_mat,fmt = "%d")
-    
-    #nodewise_t_val_vect_file  = os.path.abspath('nodewise_t_val_vect_'+ str(conf_interval_binom) +'.npy')
-    #np.save(nodewise_t_val_vect_file,nodewise_t_val_vect)
-    
-    #return nodewise_t_val_vect_file
-    
-    
-def compute_nodewise_ttest_stats_fdr(group_vect_file1,group_vect_file2):
+def compute_nodewise_ttest_stats_fdr(group_vect_file1,group_vect_file2,t_test_thresh_fdr):
 
     import numpy as np
     import os
 
-    import utils_stats as stats
-    
-    from  define_variables import conf_interval_binom_fdr
-    
+    import dmgraphanalysis.utils_stats as stats
     
     print "loading group_vect1"
     
@@ -795,7 +690,7 @@ def compute_nodewise_ttest_stats_fdr(group_vect_file1,group_vect_file2):
     
     assert Ix == Iy
     
-    nodewise_t_val_vect = stats.compute_nodewise_t_values_fdr(group_vect1,group_vect2)
+    nodewise_t_val_vect = stats.compute_nodewise_t_values_fdr(group_vect1,group_vect2,t_test_thresh_fdr)
     
     
     #d_stacked = np.concatenate( (group_vect1,group_vect2),axis = 1)
@@ -809,7 +704,7 @@ def compute_nodewise_ttest_stats_fdr(group_vect_file1,group_vect_file2):
     #pairwise_binom_adj_mat_file  = os.path.abspath('pairwise_binom_adj_'+ str(conf_interval_binom) +'.txt')
     #np.savetxt(pairwise_binom_adj_mat_file,pairwise_binom_adj_mat,fmt = "%d")
     
-    nodewise_t_val_vect_file  = os.path.abspath('nodewise_t_val_vect_fdr_'+ str(conf_interval_binom_fdr) +'.npy')
+    nodewise_t_val_vect_file  = os.path.abspath('nodewise_t_val_vect_fdr_'+ str(t_test_thresh_fdr) +'.npy')
     np.save(nodewise_t_val_vect_file,nodewise_t_val_vect)
     
     return nodewise_t_val_vect_file
