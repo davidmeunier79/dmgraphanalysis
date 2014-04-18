@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+import scipy.stats as stat
+import numpy as np
+import itertools as it
 
 def info_CI(X,Y):
     """ Compute binomial comparaison
@@ -206,11 +211,11 @@ def compute_pairwise_ttest_fdr(X,Y,t_test_thresh_fdr):
     
     for i,j in it.combinations(range(N), 2):
         
-        t_stat_zalewski = ttest2(X[i,j,:],Y[i,j,:])
+        #t_stat_zalewski = ttest2(X[i,j,:],Y[i,j,:])
         
         t_stat,p_val = stat.ttest_ind(X[i,j,:],Y[i,j,:])
         
-        print t_stat_zalewski,t_stat,p_val
+        print t_stat,p_val
         
         list_diff.append([i,j,p_val,np.sign(np.mean(X[i,j,:])-np.mean(Y[i,j,:]))])
         
@@ -342,7 +347,7 @@ def compute_pairwise_binom_fdr(X,Y,conf_interval_binom_fdr):
     #return t_val_vect
 
     
-def compute_nodewise_t_values_fdr(X,Y):
+def compute_nodewise_t_values_fdr(X,Y,t_test_thresh_fdr):
 
     # number of nodes
     N = X.shape[0]
@@ -351,11 +356,11 @@ def compute_nodewise_t_values_fdr(X,Y):
     
     for i in range(N):
         
-        t_stat_zalewski = ttest2(X[i,:],Y[i,:])
+        #t_stat_zalewski = ttest2(X[i,:],Y[i,:])
         
         t_stat,p_val = stat.ttest_ind(X[i,:],Y[i,:])
         
-        print t_stat_zalewski,t_stat,p_val
+        print t_stat,p_val
         
         list_diff.append([i,p_val,np.sign(np.mean(X[i,:])-np.mean(Y[i,:]))])
         
@@ -369,7 +374,7 @@ def compute_nodewise_t_values_fdr(X,Y):
     
     print sort_np_list_diff.shape[0]
     
-    signif_fdr = return_signif_pval_vect(sort_np_list_diff)
+    signif_fdr = return_signif_pval_vect(sort_np_list_diff,t_test_thresh_fdr)
     
     #print signif_fdr
     
