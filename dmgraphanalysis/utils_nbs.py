@@ -362,7 +362,7 @@ def find_biggest_component_size_ttest(X,Y,t_test_thresh):
     return max_sz,sz_links,ADJ
         
         
-def compute_nbs_ttest(d_stacked, nx, ny , K = 1000,t_test_thresh):
+def compute_nbs_ttest(d_stacked, nx, ny , t_test_thresh, K = 1000):
     """ Computes the network-based statistic (NBS) as described in [1].
 Performs the NBS for populations X and Y for a
 T-statistic threshold of t_test_thresh. The third dimension of X and Y
@@ -628,7 +628,7 @@ def find_biggest_component_size_binom(X,Y,conf_interval_binom):
     return max_sz,sz_links
         
         
-def compute_nbs_binom(d_stacked, nx, ny , K = 1000,conf_interval_binom):
+def compute_nbs_binom(d_stacked, nx, ny , conf_interval_binom, K = 1000):
     """ Computes the network-based statistic (NBS) as described in [1].
 Performs the NBS for populations X and Y for a
 T-statistic threshold of t_test_thresh. The third dimension of X and Y
