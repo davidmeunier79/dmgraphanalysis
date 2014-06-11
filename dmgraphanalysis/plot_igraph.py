@@ -1341,8 +1341,6 @@ import math
 #'navyblue',
 #'slateblue']
 
-#igraph_colors = ['red','blue','green','yellow','brown','purple','lavender','cornsilk','black']
-
 nb_igraph_colors = 100
 
 ######################################## generate colors #################################
@@ -1363,6 +1361,57 @@ def int_tohex(r,g,b):
     hexchars = "0123456789ABCDEF"
     return "#" + hexchars[int(r / 16)] + hexchars[int(r % 16)] + hexchars[int(g / 16)] + hexchars[int(g % 16)] + hexchars[int(b / 16)] + hexchars[int(b % 16)]
      
+     
+def generate_RGB_colors(nb_colors):
+
+    import colorsys
+    import matplotlib.cm as cm
+    
+    N = 1000
+    
+    RGB_tuples = cm.get_cmap('rainbow',nb_colors)
+    
+    #print RGB_tuples
+    
+    #RGB_tuples = my_cmap[:N]
+    
+    #print RGB_tuples
+    
+    
+    #print RGB_tuples
+    
+    RGB_colors = []
+    
+    increment = 1
+    val = 0
+    
+    
+    while len(RGB_colors) < nb_colors:
+        
+        #print val, val*N
+        #print RGB_tuples[int(val*N)]
+        
+        color = RGB_tuples(val)
+        
+        #print color
+        
+        if not color in RGB_colors:
+            RGB_colors.append(color)
+            
+        val = val+ 1.0/(float(increment))
+        
+        if (val > 1.0):
+            
+            increment = increment +1
+            
+            val = 1.0/(float(increment))
+            
+            
+        #print len(RGB_colors)
+    
+    
+    return RGB_colors
+
 def generate_igraph_colors(nb_colors):
 
     import colorsys
@@ -1370,7 +1419,7 @@ def generate_igraph_colors(nb_colors):
     
     N = 1000
     
-    RGB_tuples = cm.get_cmap('rainbow',N)
+    RGB_tuples = cm.get_cmap('rainbow',nb_colors)
     
     #print RGB_tuples
     
@@ -1401,11 +1450,12 @@ def generate_igraph_colors(nb_colors):
             
         val = val+ 1.0/(3.0*float(increment))
         
-        if (val >= 1.0):
+        if (val > 1.0):
+            
+            increment = increment +1
             
             val = 1.0/(3.0*float(increment))
             
-            increment = increment +1
             
         #print len(igraph_colors)
     
@@ -1536,6 +1586,9 @@ def generate_igraph_colors(nb_colors):
 
 igraph_colors = generate_igraph_colors(nb_igraph_colors)
 
+RGB_colors = generate_RGB_colors(nb_igraph_colors)
+#igraph_colors = ['red','blue','green','yellow','brown','purple','orange','black']
+
 ######################################## igraph 2D #######################################
 
 def plot_igraph_2D_adj_mat(signif_adj_matrix,gm_mask_coords_list,plot_nbs_adj_mat_file):
@@ -1555,24 +1608,22 @@ def plot_igraph_2D_adj_mat(signif_adj_matrix,gm_mask_coords_list,plot_nbs_adj_ma
 
 ######################################## igraph 3D #######################################
      
-def project2D_np(node_coords):
+def project2D_np(node_coords, angle_alpha = 0.0, angle_beta = 0.0):
 
-    node_coords = np.transpose(np.vstack((node_coords[:,1],-node_coords[:,2]*0.5,node_coords[:,0])))
+    #node_coords = np.transpose(np.vstack((node_coords[:,1],-node_coords[:,2]*0.5,node_coords[:,0])))
+    node_coords = np.transpose(np.vstack((node_coords[:,1],-node_coords[:,2],node_coords[:,0])))
     
     #print node_coords
     
     ##0/0
     
-    
-    angle_alpha = 0.0
-    angle_beta = 0.0
+    angle_alpha = angle_alpha + 10.0
+    angle_beta = angle_beta + 5.0
 
     print node_coords.shape
     
     #layout2D = project2D(node_coords.tolist(),0,0)
     layout2D = project2D(node_coords.tolist(),np.pi/180*angle_alpha,np.pi/180*angle_beta)
-    
-    
     
     #node_coords = np.transpose(np.vstack((node_coords[:,1],node_coords[:,2],node_coords[:,0])))
     
@@ -1692,7 +1743,6 @@ def plot_igraph_3D_int_mat(int_matrix,coords,plot_nbs_adj_mat_file):
     ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = 0.01, edge_curved = True)
     
     
-    
 def plot_igraph_3D_int_mat(int_matrix,coords,plot_nbs_adj_mat_file):
     
     layout2D = project2D_np(coords)
@@ -1717,6 +1767,38 @@ def plot_igraph_3D_int_mat(int_matrix,coords,plot_nbs_adj_mat_file):
     ###print g
     #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = np.array(g.es['weight']), edge_curved = True)
     ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = 0.01, edge_curved = True)
+    
+    
+    
+    
+    
+def plot_igraph_3D_int_upper_mat(upper_matrix,coords,plot_nbs_adj_mat_file, labels = []):
+    
+    layout2D = project2D_np(coords)
+     
+    #print layout2D
+        
+    g= ig.Graph.Weighted_Adjacency(upper_matrix.tolist(),mode=ig.ADJ_UPPER, loops = False)
+    
+    vertex_degree = np.array(g.degree())*0.2
+    
+    
+    
+    
+    if len(labels) == len(g.vs):
+    
+        g.vs['label'] = labels
+        
+        g.vs['label_size'] = 5
+    
+    #print vertex_degree
+    
+    #g.es['sign'] = np.sign(g)
+    
+    #
+    ###print g
+    #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = np.array(g.es['weight']), edge_curved = True)
+    ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = 0.01, edge_curved = False)
     
     
     
@@ -1788,6 +1870,53 @@ def plot_igraph_3D_signed_bin_label_mat(int_matrix,coords,plot_nbs_adj_mat_file,
     ###print g
     #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = np.array(g.es['weight']), edge_curved = True)
     #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = 0.01, edge_curved = True)
+    
+    
+    
+def plot_igraph_3D_categ_upper_mat(upper_matrix,coords,plot_nbs_adj_mat_file,labels = [],dict_colors = igraph_colors):
+    
+    layout2D = project2D_np(coords)
+     
+    #print layout2D
+        
+    g= ig.Graph.Weighted_Adjacency(upper_matrix.tolist(),mode=ig.ADJ_UPPER, loops = False)
+    
+    #print g.es['weight']
+    
+    edge_col = []
+    
+    #dict_colors[13] = 'grey'
+    
+    
+    for w in g.es['weight']:
+        
+        #(e0,e1) = e.tuple
+        
+        #print int(e.weight)
+        
+        #comp_index = int(e.weight)
+        
+        if int(w) < nb_igraph_colors:
+            edge_col.append(dict_colors[int(w)])
+            
+            #print dict_colors[int(w)],int(w)
+            
+        else:
+            edge_col.append("lightgrey")
+            
+    g.es['color'] = edge_col
+    
+    
+    if len(labels) == len(g.vs):
+    
+        g.vs['label'] = labels
+        
+        g.vs['label_size'] = 5
+    
+    ###print g
+    #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = np.array(g.es['weight']), edge_curved = True)
+    #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = 0.01, edge_curved = True)
+    ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = 1.0,    edge_width = 1)
     
     
     
@@ -2062,6 +2191,502 @@ def plot_3D_igraph_modules_net_list(community_vect,node_coords,net_list,gm_mask_
     return net_list_all_modules_file
     
     
+def plot_3D_igraph_modules_node_roles(community_vect,node_coords,Z_list,gm_mask_coords,node_roles):
+    
+    
+    if (community_vect.shape[0] != node_coords.shape[0]):
+        print "Warning, community_vect {} != node_coords {}".format(community_vect.shape[0], node_coords.shape[0])
+        
+    if (community_vect.shape[0] != node_roles.shape[0]):
+        print "Warning, community_vect {} != node_roles {}".format(community_vect.shape[0], node_roles.shape[0])
+        
+
+    
+    find_in_corres = find_index_in_coords(gm_mask_coords,node_coords)
+    
+    ########### threshoding the number of dictictly displayed modules with the number of igraph colors
+    
+    community_vect[community_vect > len(igraph_colors)-1] = len(igraph_colors)-1
+    
+    ########### extract edge list (with coords belonging to )
+    
+    edge_col_inter = []
+    edge_list_inter = []
+    edge_weights_inter = []
+    
+    edge_col_intra = []
+    edge_list_intra = []
+    edge_weights_intra = []
+    
+    for u,v,w in Z_list:
+        #print u,v
+        if find_in_corres[u-1] != -1 and find_in_corres[v-1] != -1:
+        #and u > v:
+            
+            e0 = find_in_corres[u-1]
+            e1 = find_in_corres[v-1]
+            
+            if (community_vect[e0] == community_vect[e1]):
+                
+                edge_list_intra.append((e0,e1))
+                edge_weights_intra.append(w)
+                edge_col_intra.append(igraph_colors[community_vect[e0]])
+            else:
+                
+                edge_list_inter.append((e0,e1))
+                edge_weights_inter.append(w)
+                edge_col_inter.append("lightgrey")
+                
+            
+    layout2D = project2D_np(node_coords)
+    
+    ###################################################### All modules 
+    
+    node_roles_modules_file = os.path.abspath("node_roles_modules.eps")
+
+    edge_list = edge_list_inter + edge_list_intra
+    
+    edge_weights = edge_weights_inter + edge_weights_intra 
+    
+    edge_col = edge_col_inter + edge_col_intra
+    
+    
+    g_all= ig.Graph(edge_list)
+    
+    g_all.es["weight"] = edge_weights
+    
+    g_all.es['color'] = edge_col
+    #print g_all
+    
+    ######### colors (module belonging) and shape - size (roles)
+    
+    vertex_col = []
+    
+    vertex_shape = []
+    
+    vertex_size = []
+    
+    print len(g_all.vs),node_roles.shape[0]
+    
+    for i,v in enumerate(g_all.vs):
+        
+        ### color
+        mod_index = community_vect[i]
+        if (mod_index != len(igraph_colors)-1):
+            vertex_col.append(igraph_colors[mod_index])
+        else:
+            vertex_col.append("lightgrey")
+            
+        ### node size
+        if node_roles[i,0] == 1:
+            vertex_size.append(5.0)
+        elif node_roles[i,0] == 2:
+            vertex_size.append(10.0)
+            
+            
+        ### shape
+        if node_roles[i,1] == 1:
+            vertex_shape.append("circle")
+            
+        elif node_roles[i,1] == 2 or node_roles[i,1] == 5:
+            
+            vertex_shape.append("rectangle")
+    
+        elif node_roles[i,1] ==  3 or node_roles[i,1] == 6:
+            
+            vertex_shape.append("triangle-up")
+            
+        elif node_roles[i,1] == 4 or node_roles[i,1] == 7:
+            vertex_shape.append("triangle-down")
+            
+    
+    g_all.vs['color'] = vertex_col
+    
+    g_all['layout'] = layout2D.tolist()
+    
+    ig.plot(g_all, node_roles_modules_file, vertex_size = np.array(vertex_size),    edge_width = np.array(edge_weights)*0.001, edge_curved = False, vertex_shape = vertex_shape)
+    
+    return node_roles_modules_file
+    
+def plot_3D_igraph_modules_coomatrix(community_vect,coomatrix,node_coords,node_labels):
+
+
+    if community_vect.shape[0] != node_coords.shape[0]:
+        print "Warning, community_vect {} != node_coords {}".format(community_vect.shape[0], node_coords.shape[0])
+        
+    if community_vect.shape[0] != node_labels.shape[0]:
+        print "Warning, community_vect {} != node_labels {}".format(community_vect.shape[0], node_labels.shape[0])
+     
+    if coomatrix.shape[0] != community_vect.shape[0] or coomatrix.shape[1] != community_vect.shape[0]:
+        print "Warning, community_vect {} != coomatrix {}".format(community_vect.shape[0], coomatrix.shape[0])
+        print "OR, coomatrix is not a square matrix {} != ".format(coomatrix.shape[0],coomatrix.shape[1])
+     
+   
+    print community_vect.shape,coomatrix.shape,node_coords.shape,node_labels.shape
+    
+    ########### extract edge list (with coords belonging to )
+    
+    edge_col_inter = []
+    edge_list_inter = []
+    edge_weights_inter = []
+    
+    edge_col_intra = []
+    edge_list_intra = []
+    edge_weights_intra = []
+    
+    for e0,e1,w in zip(coomatrix.row,coomatrix.col,coomatrix.data):
+    
+        if (community_vect[e0] == community_vect[e1]):
+            
+            edge_list_intra.append((e0,e1))
+            edge_weights_intra.append(w)
+            edge_col_intra.append(igraph_colors[community_vect[e0]])
+            
+            
+        else:
+            
+            edge_list_inter.append((e0,e1))
+            edge_weights_inter.append(w)
+            edge_col_inter.append("lightgrey")
+            
+        
+    ###################################################### All modules 
+    
+    edge_list = edge_list_intra
+    
+    edge_weights = edge_weights_intra 
+    
+    edge_col = edge_col_intra
+    
+    edge_list = edge_list_inter + edge_list_intra
+    
+    edge_weights = edge_weights_inter + edge_weights_intra 
+    
+    edge_col = edge_col_inter + edge_col_intra
+    
+    
+    
+    g_all= ig.Graph(edge_list)
+    
+    print len(g_all.vs),len(g_all.es)
+    
+    g_all.es["weight"] = edge_weights
+    
+    g_all.es['color'] = edge_col
+    #print g_all
+    
+    ######### colors
+    
+    vertex_col = []
+    
+    for i,v in enumerate(g_all.vs):
+        mod_index = community_vect[i]
+        if (mod_index != len(igraph_colors)-1):
+            vertex_col.append(igraph_colors[mod_index])
+        else:
+            vertex_col.append("lightgrey")
+    
+    g_all.vs['color'] = vertex_col
+    
+    print len(node_labels),len(g_all.vs)
+    
+    #print len(cur_labels),len(g_all.vs)
+    
+    if node_labels.shape[0] == len(g_all.vs):
+    
+        print "$$$$$$$$$$$$$$$$ Labels $$$$$$$$$$$$$$$$$$$$$$$$"
+        
+        g_all.vs['label'] = node_labels.tolist()
+        
+        g_all.vs['label_size'] = 5
+        
+        g_all.vs['label_dist'] = 2
+    
+    views = [[0.0,0.0],[0.,90.0],[90.,0.0],[0.,-90.0]]
+    
+    suf = ["_from_left","_from_front","_from_top","_from_behind"]
+    
+    Z_list_all_modules_files = []
+    
+    for i,view in enumerate(views):
+    
+        print view
+        
+        Z_list_all_modules_file = os.path.abspath("All_modules" + suf[i] + ".eps")
+
+        Z_list_all_modules_files.append(Z_list_all_modules_file)
+        
+        layout2D = project2D_np(node_coords, angle_alpha = view[0],angle_beta = view[1])
+        
+        g_all['layout'] = layout2D.tolist()
+    
+        #ig.plot(g_all, Z_list_all_modules_file, vertex_size = 0.5,    edge_width = np.array(edge_weights)*0.001, edge_curved = False)
+        
+        ig.plot(g_all, Z_list_all_modules_file, vertex_size = 5,    edge_width = 1, edge_curved = False)
+        
+    return Z_list_all_modules_files
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ### previous version
+#def plot_3D_igraph_modules_coomatrix(community_vect,node_coords,coomatrix,gm_mask_coords,labels = []):
+
+    #if (community_vect.shape[0] != node_coords.shape[0]):
+        #print "Warning, community_vect {} != node_coords {}".format(community_vect.shape[0], node_coords.shape[0])
+        
+
+    #find_in_corres = find_index_in_coords(gm_mask_coords,node_coords)
+    
+    #print np.min(find_in_corres),np.max(find_in_corres),find_in_corres.shape
+    
+    #find_in_gm = find_index_in_coords(node_coords,gm_mask_coords)
+    
+    ##print find_in_gm
+    #print np.min(find_in_gm),np.max(find_in_gm),find_in_gm.shape
+        
+    #if len(labels) != 0:
+            
+        #np_labels = np.array(labels, dtype = 'string')
+        
+        #print np_labels
+        
+        #cur_labels = np_labels[find_in_gm]
+        
+        #print cur_labels
+        
+    #else :
+        #cur_labels = np.empty((0), dtype = 'string')
+            
+    #print len(labels),cur_labels.shape
+    
+    #0/0
+    
+    ############ extract edge list (with coords belonging to )
+    
+    #edge_col_inter = []
+    #edge_list_inter = []
+    #edge_weights_inter = []
+    
+    #edge_col_intra = []
+    #edge_list_intra = []
+    #edge_weights_intra = []
+    
+    #for u,v,w in zip(coomatrix.row,coomatrix.col,coomatrix.data):
+        ##print u,v
+        #if find_in_corres[u-1] != -1 and find_in_corres[v-1] != -1:
+        ##and u > v:
+            
+            #e0 = find_in_corres[u-1]
+            #e1 = find_in_corres[v-1]
+            
+            #if (community_vect[e0] == community_vect[e1]):
+                
+                #edge_list_intra.append((e0,e1))
+                #edge_weights_intra.append(w)
+                #edge_col_intra.append(igraph_colors[community_vect[e0]])
+                
+                
+            #else:
+                
+                #edge_list_inter.append((e0,e1))
+                #edge_weights_inter.append(w)
+                #edge_col_inter.append("lightgrey")
+                
+            
+    ####################################################### All modules 
+    
+    #edge_list = edge_list_intra
+    
+    #edge_weights = edge_weights_intra 
+    
+    #edge_col = edge_col_intra
+    
+    #edge_list = edge_list_inter + edge_list_intra
+    
+    #edge_weights = edge_weights_inter + edge_weights_intra 
+    
+    #edge_col = edge_col_inter + edge_col_intra
+    
+    
+    
+    #g_all= ig.Graph(edge_list)
+    
+    #g_all.es["weight"] = edge_weights
+    
+    #g_all.es['color'] = edge_col
+    ##print g_all
+    
+    ########## colors
+    
+    #vertex_col = []
+    
+    #for i,v in enumerate(g_all.vs):
+        #mod_index = community_vect[i]
+        #if (mod_index != len(igraph_colors)-1):
+            #vertex_col.append(igraph_colors[mod_index])
+        #else:
+            #vertex_col.append("lightgrey")
+    
+    #g_all.vs['color'] = vertex_col
+    
+    
+    
+    #print len(cur_labels),len(g_all.vs)
+    
+    #0/0
+    ##print len(cur_labels),len(g_all.vs)
+    
+    #if len(cur_labels) == len(g_all.vs):
+    
+        #print "$$$$$$$$$$$$$$$$ Labels $$$$$$$$$$$$$$$$$$$$$$$$"
+        
+        #g_all.vs['label'] = cur_labels
+        
+        #g_all.vs['label_size'] = 5
+        
+        #g_all.vs['label_dist'] = 2
+    
+    
+    
+    #views = [[0.0,0.0],[0.,90.0],[90.,0.0],[0.,-90.0]]
+    
+    #suf = ["_from_left","_from_front","_from_top","_from_behind"]
+    
+    #Z_list_all_modules_files = []
+    
+    #for i,view in enumerate(views):
+    
+        #print view
+        
+        #Z_list_all_modules_file = os.path.abspath("All_modules" + suf[i] + ".eps")
+
+        #Z_list_all_modules_files.append(Z_list_all_modules_file)
+        
+        #layout2D = project2D_np(node_coords, angle_alpha = view[0],angle_beta = view[1])
+        
+        #g_all['layout'] = layout2D.tolist()
+    
+        ##ig.plot(g_all, Z_list_all_modules_file, vertex_size = 0.5,    edge_width = np.array(edge_weights)*0.001, edge_curved = False)
+        
+        #ig.plot(g_all, Z_list_all_modules_file, vertex_size = 5,    edge_width = 1, edge_curved = False)
+        
+    #return Z_list_all_modules_files
+    
+    
+def plot_3D_igraph_single_modules_coomatrix(community_vect,node_coords,coomatrix,gm_mask_coords):
+
+    if (community_vect.shape[0] != node_coords.shape[0]):
+        print "Warning, community_vect {} != node_coords {}".format(community_vect.shape[0], node_coords.shape[0])
+        
+    find_in_corres = find_index_in_coords(gm_mask_coords,node_coords)
+    
+    ########### threshoding the number of dictictly displayed modules with the number of igraph colors
+    
+    community_vect[community_vect > len(igraph_colors)-1] = len(igraph_colors)-1
+    
+    ########### extract edge list (with coords belonging to )
+    
+    print np.unique(community_vect)
+    
+    Z_list_all_modules_files = []
+        
+    for mod_index in np.unique(community_vect):
+    
+        
+        edge_col_intra = []
+        edge_list_intra = []
+        edge_weights_intra = []
+        
+        for u,v,w in zip(coomatrix.row,coomatrix.col,coomatrix.data):
+            #print u,v
+            if find_in_corres[u-1] != -1 and find_in_corres[v-1] != -1:
+            #and u > v:
+                
+                e0 = find_in_corres[u-1]
+                e1 = find_in_corres[v-1]
+                
+                if (community_vect[e0] == community_vect[e1] and community_vect[e0] == mod_index):
+                    
+                    edge_list_intra.append((e0,e1))
+                    edge_weights_intra.append(w)
+                    edge_col_intra.append(igraph_colors[community_vect[e0]])
+                    
+                    
+                #else:
+                    
+                    #edge_list_inter.append((e0,e1))
+                    #edge_weights_inter.append(w)
+                    #edge_col_inter.append("lightgrey")
+                    
+                
+        ###################################################### All modules 
+        
+        edge_list = edge_list_intra
+        
+        edge_weights = edge_weights_intra 
+        
+        edge_col = edge_col_intra
+        
+        #edge_list = edge_list_inter + edge_list_intra
+        
+        #edge_weights = edge_weights_inter + edge_weights_intra 
+        
+        #edge_col = edge_col_inter + edge_col_intra
+        
+        
+        
+        g_all= ig.Graph(edge_list)
+        
+        g_all.es["weight"] = edge_weights
+        
+        g_all.es['color'] = edge_col
+        #print g_all
+        
+        ######### colors
+        
+        vertex_col = []
+        
+        for i,v in enumerate(g_all.vs):
+            mod_index = community_vect[i]
+            if (mod_index != len(igraph_colors)-1):
+                vertex_col.append(igraph_colors[mod_index])
+            else:
+                vertex_col.append("lightgrey")
+        
+        g_all.vs['color'] = vertex_col
+        
+        
+        
+        view = [0.0,0.0]
+        
+        #views = [[0.0,0.0],[0.,90.0],[90.,0.0],[0.,-90.0]]
+        
+        #suf = ["_from_left","_from_front","_from_top","_from_behind"]
+        
+        #for i,view in enumerate(views):
+        
+        print view
+        
+        Z_list_all_modules_file = os.path.abspath("module_" + str(mod_index) + "_from_left.eps")
+
+        Z_list_all_modules_files.append(Z_list_all_modules_file)
+        
+        layout2D = project2D_np(node_coords, angle_alpha = view[0],angle_beta = view[1])
+        
+        g_all['layout'] = layout2D.tolist()
+    
+        ig.plot(g_all, Z_list_all_modules_file, vertex_size = 0.5,    edge_width = np.array(edge_weights)*0.001, edge_curved = False)
+        
+    return Z_list_all_modules_files
+    
+    
 def plot_3D_igraph_modules_Z_list(community_vect,node_coords,Z_list,gm_mask_coords):
 
     if (community_vect.shape[0] != node_coords.shape[0]):
@@ -2214,6 +2839,530 @@ def plot_3D_igraph_modules_Z_list(community_vect,node_coords,Z_list,gm_mask_coor
     #ig.plot(g_all, Z_list_all_modules_file, vertex_size = np.array(g_all.degree())*0.5,    edge_width = np.array(edge_weights)*0.001, edge_curved = False)
     
     #return Z_list_all_modules_file
+        
+    
+################################# using relative coords directly 
+
+def plot_3D_igraph_all_modules_coomatrix_rel_coords(community_vect,node_rel_coords,coomatrix, node_labels = []):
+    
+    if (community_vect.shape[0] != node_rel_coords.shape[0]):
+        print "Warning, community_vect {} != node_rel_coords {}".format(community_vect.shape[0], node_rel_coords.shape[0])
+        
+    print community_vect.shape
+    print node_rel_coords.shape
+    
+    print coomatrix.shape
+    
+    ########### threshoding the number of dictictly displayed modules with the number of igraph colors
+    
+    community_vect[community_vect > len(igraph_colors)-1] = len(igraph_colors)-1
+    
+    ########### extract edge list (with coords belonging to )
+    
+    print np.unique(community_vect)
+    
+    edge_col_inter = []
+    edge_list_inter = []
+    edge_weights_inter = []
+    
+    edge_col_intra = []
+    edge_list_intra = []
+    edge_weights_intra = []
+    
+    for u,v,w in zip(coomatrix.row,coomatrix.col,coomatrix.data):
+        
+        if (community_vect[u] == community_vect[v]):
+            
+            edge_list_intra.append((u,v))
+            edge_weights_intra.append(w)
+            edge_col_intra.append(igraph_colors[community_vect[u]])
+        else:
+            
+            edge_list_inter.append((u,v))
+            edge_weights_inter.append(w)
+            edge_col_inter.append("lightgrey")
+            
+            
+    edge_list = edge_list_inter + edge_list_intra
+    
+    edge_weights = edge_weights_inter + edge_weights_intra 
+    
+    edge_col = edge_col_inter + edge_col_intra
+    
+    g_all= ig.Graph(edge_list)
+    
+    g_all.es["weight"] = edge_weights
+    
+    g_all.es['color'] = edge_col
+    #print g_all
+    
+    ######### colors
+    
+    vertex_col = []
+    
+    for i,v in enumerate(g_all.vs):
+        mod_index = community_vect[i]
+        if (mod_index != len(igraph_colors)-1):
+            vertex_col.append(igraph_colors[mod_index])
+        else:
+            vertex_col.append("lightgrey")
+    
+    g_all.vs['color'] = vertex_col
+    
+    
+    if len(node_labels) == len(g_all.vs):
+    
+        print "$$$$$$$$$$$$$$$$ Labels $$$$$$$$$$$$$$$$$$$$$$$$"
+        
+        g_all.vs['label'] = node_labels
+        
+        g_all.vs['label_size'] = 5
+        
+        g_all.vs['label_dist'] = 2
+    
+    
+    views = [[0.0,0.0],[0.,90.0],[90.,0.0],[0.,-90.0]]
+    
+    suf = ["_from_left","_from_front","_from_top","_from_behind"]
+    
+    Z_list_all_modules_files = []
+    
+    for i,view in enumerate(views):
+    
+        print view
+        
+        Z_list_all_modules_file = os.path.abspath("All_modules" + suf[i] + ".eps")
+
+        Z_list_all_modules_files.append(Z_list_all_modules_file)
+        
+        layout2D = project2D_np(node_rel_coords, angle_alpha = view[0],angle_beta = view[1])
+        
+        g_all['layout'] = layout2D.tolist()
+    
+        #ig.plot(g_all, Z_list_all_modules_file, vertex_size = 5,    edge_width = 1, edge_curved = False)
+        ig.plot(g_all, Z_list_all_modules_file, vertex_size = 1,    edge_width = 0.1, edge_curved = False)
+        
+    return Z_list_all_modules_files
+    
+def plot_3D_igraph_single_modules_coomatrix_rel_coords(community_vect,node_rel_coords,coomatrix, node_labels = []):
+    
+    import collections
+    
+    dist_com = collections.Counter(community_vect)
+    
+    print dist_com
+    
+    if (community_vect.shape[0] != node_rel_coords.shape[0]):
+        print "Warning, community_vect {} != node_rel_coords {}".format(community_vect.shape[0], node_rel_coords.shape[0])
+        
+    print community_vect.shape
+    print node_rel_coords.shape
+    
+    print coomatrix.shape
+    
+    ########### threshoding the number of dictictly displayed modules with the number of igraph colors
+    
+    community_vect[community_vect > len(igraph_colors)-1] = len(igraph_colors)-1
+    
+    
+    dist_com = collections.Counter(community_vect)
+    
+    print dist_com
+    
+    ########### extract edge list (with coords belonging to )
+    
+    print np.unique(community_vect)
+    
+    Z_list_all_modules_files = []
+    
+    mat = coomatrix.todense()
+    
+    mat = mat + np.transpose(mat)
+    
+    print np.min(mat), np.max(mat)
+    
+    g_all= ig.Graph.Weighted_Adjacency(matrix = mat.tolist(), mode=ig.ADJ_UNDIRECTED, attr="weight",loops = False)
+        
+    if len(node_labels) == len(g_all.vs):
+    
+        print "$$$$$$$$$$$$$$$$ Labels $$$$$$$$$$$$$$$$$$$$$$$$"
+        
+        g_all.vs['label'] = node_labels
+        
+        g_all.vs['label_size'] = 5
+        
+        g_all.vs['label_dist'] = 2
+    
+    
+    for mod_index in np.unique(community_vect):
+    
+        print "Module index %d has %d nodes"%(mod_index,np.sum(community_vect == mod_index))
+        
+        if np.sum(community_vect == mod_index) < 100:
+            
+            print "Not enough nodes (%d), skipping plot"%(np.sum(community_vect == mod_index))
+            continue
+        
+        g_sel = g_all.copy()
+        
+        edge_mod_id = []
+        edge_col_intra = []
+        
+        for u,v,w in zip(coomatrix.row,coomatrix.col,coomatrix.data):
+            
+            if (community_vect[u] == community_vect[v] and community_vect[u] == mod_index):
+                
+                edge_col_intra.append(igraph_colors[community_vect[u]])
+            else: 
+                eid = g_sel.get_eid(u,v)
+                
+                edge_mod_id.append(eid)
+                
+        g_sel.delete_edges(edge_mod_id)
+        
+        g_sel.es['color'] = edge_col_intra
+        
+        ######### node colors
+        
+        vertex_col = []
+        
+        for i,v in enumerate(g_sel.vs):
+            cur_mod_index = community_vect[i]
+            
+            if (mod_index == cur_mod_index):
+                vertex_col.append(igraph_colors[mod_index])
+            else:
+                vertex_col.append("black")
+        
+        g_sel.vs['color'] = vertex_col
+        
+        ### single view
+        #view = [0.0,0.0]
+        
+        #Z_list_all_modules_file = os.path.abspath("module_" + str(mod_index) + "_from_left.eps")
+
+        #layout2D = project2D_np(node_rel_coords, angle_alpha = view[0],angle_beta = view[1])
+        
+        #g_sel['layout'] = layout2D.tolist()
+    
+        ##ig.plot(g_sel, Z_list_all_modules_file, vertex_size = 0.5,    edge_width = 0.1, edge_curved = False)
+        ##ig.plot(g_sel, Z_list_all_modules_file, vertex_size = 5,    edge_width = 1, edge_curved = False)
+        #ig.plot(g_sel, Z_list_all_modules_file, vertex_size = 1,    edge_width = 0.1, edge_curved = False)
+        
+        #Z_list_all_modules_files.append(Z_list_all_modules_file)
+        
+        ### all view
+        views = [[0.0,0.0],[0.,90.0],[90.,0.0],[0.,-90.0]]
+        
+        suf = ["_from_left","_from_front","_from_top","_from_behind"]
+        
+        Z_list_all_modules_files = []
+        
+        for i,view in enumerate(views):
+        
+            print view
+            
+            Z_list_all_modules_file = os.path.abspath("module_" + str(mod_index) + suf[i] + ".eps")
+
+            layout2D = project2D_np(node_rel_coords, angle_alpha = view[0],angle_beta = view[1])
+            
+            g_sel['layout'] = layout2D.tolist()
+        
+            #ig.plot(g_all, Z_list_all_modules_file, vertex_size = 5,    edge_width = 1, edge_curved = False)
+            ig.plot(g_sel, Z_list_all_modules_file, vertex_size = 1,    edge_width = 0.1, edge_curved = False)
+            
+            Z_list_all_modules_files.append(Z_list_all_modules_file)
+            
+        
+    return Z_list_all_modules_files
+    
+    
+############ with node roles
+def plot_3D_igraph_single_modules_coomatrix_rel_coords_node_roles(community_vect,node_rel_coords,coomatrix,node_roles):
+    
+    import collections
+    
+    dist_com = collections.Counter(community_vect)
+    
+    print dist_com
+    
+    if (community_vect.shape[0] != node_rel_coords.shape[0]):
+        print "Warning, community_vect {} != node_rel_coords {}".format(community_vect.shape[0], node_rel_coords.shape[0])
+        
+    print community_vect.shape
+    print node_rel_coords.shape
+    
+    print coomatrix.shape
+    
+    ########### threshoding the number of dictictly displayed modules with the number of igraph colors
+    
+    community_vect[community_vect > len(igraph_colors)-1] = len(igraph_colors)-1
+    
+    
+    dist_com = collections.Counter(community_vect)
+    
+    print dist_com
+    
+    ########### extract edge list (with coords belonging to )
+    
+    print np.unique(community_vect)
+    
+    Z_list_all_modules_files = []
+    
+    mat = coomatrix.todense()
+    
+    mat = mat + np.transpose(mat)
+    
+    print np.min(mat), np.max(mat)
+    
+    g_all= ig.Graph.Weighted_Adjacency(matrix = mat.tolist(), mode=ig.ADJ_UNDIRECTED, attr="weight",loops = False)
+        
+    for mod_index in np.unique(community_vect):
+    
+        print "Module index %d has %d nodes"%(mod_index,np.sum(community_vect == mod_index))
+        
+        if np.sum(community_vect == mod_index) < 100:
+            
+            print "Not enough nodes (%d), skipping plot"%(np.sum(community_vect == mod_index))
+            continue
+        
+        g_sel = g_all.copy()
+        
+        edge_mod_id = []
+        edge_col_intra = []
+        
+        for u,v,w in zip(coomatrix.row,coomatrix.col,coomatrix.data):
+            
+            if (community_vect[u] == community_vect[v] and community_vect[u] == mod_index):
+                
+                edge_col_intra.append(igraph_colors[community_vect[u]])
+            else: 
+                eid = g_sel.get_eid(u,v)
+                
+                edge_mod_id.append(eid)
+                
+        g_sel.delete_edges(edge_mod_id)
+        
+        g_sel.es['color'] = edge_col_intra
+        
+        ######### node colors and roles
+        
+        vertex_col = []
+            
+        vertex_shape = []
+        
+        vertex_size = []
+        
+                
+        for i,v in enumerate(g_sel.vs):
+            cur_mod_index = community_vect[i]
+            
+            if (mod_index == cur_mod_index):
+                vertex_col.append(igraph_colors[mod_index])
+                    
+                    
+                ### node size
+                if node_roles[i,0] == 1:
+                    vertex_size.append(5.0)
+                elif node_roles[i,0] == 2:
+                    vertex_size.append(10.0)
+                    
+                ### shape
+                if node_roles[i,1] == 1:
+                    vertex_shape.append("circle")
+                    
+                elif node_roles[i,1] == 2 or node_roles[i,1] == 5:
+                    
+                    vertex_shape.append("rectangle")
+            
+                elif node_roles[i,1] ==  3 or node_roles[i,1] == 6:
+                    
+                    vertex_shape.append("triangle-up")
+                    
+                elif node_roles[i,1] == 4 or node_roles[i,1] == 7:
+                    vertex_shape.append("triangle-down")
+                    
+        
+            else:
+                vertex_col.append("black")
+                vertex_size.append(2.0)
+                vertex_shape.append("circle")
+                
+                
+                
+    
+        g_sel.vs['color'] = vertex_col
+        
+        view = [0.0,0.0]
+        
+        Z_list_all_modules_file = os.path.abspath("module_" + str(mod_index) + "_from_left.eps")
+
+        layout2D = project2D_np(node_rel_coords, angle_alpha = view[0],angle_beta = view[1])
+        
+        g_sel['layout'] = layout2D.tolist()
+    
+        #ig.plot(g_sel, Z_list_all_modules_file, vertex_size = 0.5,    edge_width = 0.1, edge_curved = False)
+        ig.plot(g_sel, Z_list_all_modules_file, vertex_size = np.array(vertex_size),    edge_width = 1, edge_curved = False,vertex_shape = vertex_shape)
+        
+        Z_list_all_modules_files.append(Z_list_all_modules_file)
+        
+    return Z_list_all_modules_files
+    
+def plot_3D_igraph_all_modules_coomatrix_rel_coords_node_roles(community_vect,node_rel_coords,coomatrix,node_roles):
+    
+    
+    if (community_vect.shape[0] != node_rel_coords.shape[0]):
+        print "Warning, community_vect {} != node_coords {}".format(community_vect.shape[0], node_coords.shape[0])
+        
+    if (community_vect.shape[0] != node_roles.shape[0]):
+        print "Warning, community_vect {} != node_roles {}".format(community_vect.shape[0], node_roles.shape[0])
+        
+
+    print community_vect.shape
+    print node_rel_coords.shape
+    
+    print coomatrix.shape
+    
+    ########### threshoding the number of dictictly displayed modules with the number of igraph colors
+    
+    community_vect[community_vect > len(igraph_colors)-1] = len(igraph_colors)-1
+    
+    ########### extract edge list (with coords belonging to )
+    
+    print np.unique(community_vect)
+    
+    edge_col_inter = []
+    edge_list_inter = []
+    edge_weights_inter = []
+    
+    edge_col_intra = []
+    edge_list_intra = []
+    edge_weights_intra = []
+    
+    for u,v,w in zip(coomatrix.row,coomatrix.col,coomatrix.data):
+        
+        if (community_vect[u] == community_vect[v]):
+            
+            edge_list_intra.append((u,v))
+            edge_weights_intra.append(w)
+            edge_col_intra.append(igraph_colors[community_vect[u]])
+        else:
+            
+            edge_list_inter.append((u,v))
+            edge_weights_inter.append(w)
+            edge_col_inter.append("lightgrey")
+            
+            
+    edge_list = edge_list_inter + edge_list_intra
+    
+    edge_weights = edge_weights_inter + edge_weights_intra 
+    
+    edge_col = edge_col_inter + edge_col_intra
+    
+    
+    
+    
+    #edge_col_intra = []
+    #edge_list_intra = []
+    #edge_weights_intra = []
+    
+    #for u,v,w in zip(coomatrix.row,coomatrix.col,coomatrix.data):
+        
+        #if (community_vect[u] == community_vect[v]):
+            
+            #edge_list_intra.append((u,v))
+            #edge_weights_intra.append(w)
+            #edge_col_intra.append(igraph_colors[community_vect[u]])
+            
+    ####################################################### All modules 
+    
+    #edge_list = edge_list_intra
+    
+    #edge_weights = edge_weights_intra 
+    
+    #edge_col = edge_col_intra
+    
+    
+        
+        
+        
+        
+    g_all= ig.Graph(edge_list)
+    
+    g_all.es["weight"] = edge_weights
+    
+    g_all.es['color'] = edge_col
+    #print g_all
+    
+    
+    
+    
+    
+    ######### colors (module belonging) and shape - size (roles)
+    
+    vertex_col = []
+    
+    vertex_shape = []
+    
+    vertex_size = []
+    
+    print len(g_all.vs),node_roles.shape[0]
+    
+    for i,v in enumerate(g_all.vs):
+        
+        ### color
+        mod_index = community_vect[i]
+        if (mod_index != len(igraph_colors)-1):
+            vertex_col.append(igraph_colors[mod_index])
+        else:
+            vertex_col.append("lightgrey")
+            
+        ### node size
+        if node_roles[i,0] == 1:
+            vertex_size.append(5.0)
+        elif node_roles[i,0] == 2:
+            vertex_size.append(10.0)
+            
+        ### shape
+        if node_roles[i,1] == 1:
+            vertex_shape.append("circle")
+            
+        elif node_roles[i,1] == 2 or node_roles[i,1] == 5:
+            
+            vertex_shape.append("rectangle")
+    
+        elif node_roles[i,1] ==  3 or node_roles[i,1] == 6:
+            
+            vertex_shape.append("triangle-up")
+            
+        elif node_roles[i,1] == 4 or node_roles[i,1] == 7:
+            vertex_shape.append("triangle-down")
+            
+    
+    g_all.vs['color'] = vertex_col
+    
+    views = [[0.0,0.0],[0.,90.0],[90.,0.0],[0.,-90.0]]
+    
+    suf = ["_from_left","_from_front","_from_top","_from_behind"]
+    
+    Z_list_all_modules_files = []
+    
+    for i,view in enumerate(views):
+    
+        print view
+        
+        Z_list_all_modules_file = os.path.abspath("All_modules" + suf[i] + ".eps")
+
+        Z_list_all_modules_files.append(Z_list_all_modules_file)
+        
+        layout2D = project2D_np(node_rel_coords, angle_alpha = view[0],angle_beta = view[1])
+        
+        g_all['layout'] = layout2D.tolist()
+    
+        ig.plot(g_all, Z_list_all_modules_file, vertex_size = np.array(vertex_size),    edge_width = 1, edge_curved = False,vertex_shape = vertex_shape)
+        
+    return Z_list_all_modules_files
+    
     
      ######################################## igraph + cairo #######################################
 
@@ -2320,12 +3469,6 @@ def plot_cairo_3D_adj_mat(signif_adj_matrix,gm_mask_coords_list,plot_nbs_adj_mat
     mod_list = signif_adj_matrix.tolist()
     
     g= ig.Graph.Adjacency(mod_list,mode=ig.ADJ_MAX)
-    
-    #print g.degree()
-    
-    #g.es['sign'] = np.sign(g)
-    
-    #
     
     drawGraph3D(g, gm_mask_coords_list, (30, 60), plot_nbs_adj_mat_file)
     ###print g
