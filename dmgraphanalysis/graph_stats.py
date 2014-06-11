@@ -204,6 +204,45 @@ def prepare_nbs_stats_cor_mat(cor_mat_files,coords_files,gm_mask_coords_file):
     
     return group_cor_mat_matrix_file,avg_cor_mat_matrix_file,group_vect_file
         
+        
+def return_diff_group_mat(group_cormat_matrix_file1,group_cormat_matrix_file2):
+
+
+    import numpy as np
+    import os
+
+    #import nibabel as nib
+    
+    from dmgraphanalysis.utils_cor import return_corres_correl_mat
+    #from dmgraphanalysis.utils_cor import read_Pajek_corres_nodes,read_lol_file
+    
+    print 'loading group_cormat_matrix_file1 corres'
+    
+    group_cormat_matrix1 = np.load(group_cormat_matrix_file1)
+    
+    print group_cormat_matrix1.shape
+    
+    print 'loading group_cormat_matrix_file2 corres'
+    
+    group_cormat_matrix2 = np.load(group_cormat_matrix_file2)
+    
+    print group_cormat_matrix2.shape
+    
+    assert group_cormat_matrix1.shape == group_cormat_matrix2.shape
+    
+    print 'computing difference between matrices group'
+    
+    diff_group_cormat_matrix = group_cormat_matrix1 - group_cormat_matrix2
+    
+    print diff_group_cormat_matrix.shape    
+        
+    diff_group_cormat_matrix_file = os.path.abspath('diff_group_cor_mat_matrix.npy')
+    
+    np.save(diff_group_cormat_matrix_file,diff_group_cormat_matrix)
+        
+    return diff_group_cormat_matrix_file
+        
+        
 #######################################################################################################################################################################################################
 ################################################################################### NBS stats #########################################################################################################
 #######################################################################################################################################################################################################
@@ -407,6 +446,70 @@ def prepare_nbs_stats_cor_mat(cor_mat_files,coords_files,gm_mask_coords_file):
 #######################################################################################################################################################################################################
 
 ####### plotting
+
+def plot_signed_bin_mat_labels_only_fdr(signed_bin_mat_file,coords_file,labels_file):
+
+    import os
+    import numpy as np
+    
+    from nipype.utils.filemanip import split_filename as split_f
+    
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_signed_bin_label_mat
+    
+    from dmgraphanalysis.utils_plot import plot_cormat
+    
+    print 'loading labels'
+    
+    labels = [line.strip() for line in open(labels_file)]
+    
+    
+    print 'load gm mask'
+    
+    #with open(gm_mask_coords_file, 'Ur') as f:
+        #gm_mask_coords_list = list(tuple(map(float,rec))[0:2] for rec in csv.reader(f, delimiter=' '))
+    
+    coords = np.array(np.loadtxt(coords_file),dtype = 'int64')
+    
+    print coords.shape
+    
+    
+    print 'load bin matrix'
+    
+    signed_bin_mat = np.load(signed_bin_mat_file)
+    
+    signed_bin_mat[np.abs(signed_bin_mat) < 1.5] = 0
+    
+    print signed_bin_mat.shape
+    
+    if np.sum(signed_bin_mat != 0) != 0:
+        
+        
+        #print gm_mask_coords
+        
+        print 'plotting igraph 3D'
+        
+        ######## igraph 3D
+        plot_3D_signed_bin_mat_file = os.path.abspath('plot_igraph_3D_signed_bin_mat_only_fdr.eps')
+            
+        plot_igraph_3D_signed_bin_label_mat(signed_bin_mat,coords,plot_3D_signed_bin_mat_file, labels = labels)
+        
+        ####### plot heat map
+        
+        #### heatmap
+        print 'plotting signed_bin_mat heatmap'
+        
+        plot_heatmap_signed_bin_mat_file =  os.path.abspath('heatmap_signed_bin_mat_only_fdr.eps')
+        
+        plot_cormat(plot_heatmap_signed_bin_mat_file,signed_bin_mat,list_labels = labels)
+        
+        return plot_3D_signed_bin_mat_file ,plot_heatmap_signed_bin_mat_file
+    else:
+        
+        print "$$$$$$$$$$$$$$ Warning, Matrix is empty, no plotting"
+        
+        return '' ,''
+        
+    
 def plot_signed_bin_mat_labels(signed_bin_mat_file,coords_file,labels_file):
 
     import os
@@ -708,3 +811,32 @@ def compute_nodewise_ttest_stats_fdr(group_vect_file1,group_vect_file2,t_test_th
     np.save(nodewise_t_val_vect_file,nodewise_t_val_vect)
     
     return nodewise_t_val_vect_file
+
+    
+    ############################################################# correl with behav_score score ###############################################
+    
+def compute_pairwise_correl_stats_fdr(group_cormat_matrix_file,behav_score,correl_thresh_fdr):
+
+    import numpy as np
+    import os
+
+    import dmgraphanalysis.utils_stats as stats
+    
+    print "loading group_cormat_matrix1"
+    
+    group_cormat_matrix = np.array(np.load(group_cormat_matrix_file),dtype = float)
+    print group_cormat_matrix.shape
+    
+    assert group_cormat_matrix.shape[2] == len(behav_score)
+    
+    
+    
+    signif_signed_adj_mat  = stats.compute_pairwise_correl_fdr(group_cormat_matrix,behav_score,correl_thresh_fdr)
+    
+    print 'save pairwise signed stat file'
+    
+    signif_signed_adj_fdr_mat_file  = os.path.abspath('signif_signed_adj_fdr_'+ str(correl_thresh_fdr) +'.npy')
+    np.save(signif_signed_adj_fdr_mat_file,signif_signed_adj_mat)
+    
+    return signif_signed_adj_fdr_mat_file
+    
