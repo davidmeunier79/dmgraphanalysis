@@ -6,9 +6,6 @@ Support function for run_wei_sig_correl_mat.py, run_wei_sig_modularity.py and ru
 import sys, os
 
 
-import rpy
-import rpy2
-
 from scipy import stats
 #import pandas as pd
 
@@ -291,6 +288,10 @@ def mean_select_non_null_data(data_img,data_mask):
 
 def regress_movement_wm_csf_parameters_and_filter(data_matrix,rp,mean_wm_ts,mean_csf_ts):
 
+
+    import rpy
+    import rpy2
+
     resid_data_matrix = np.zeros(shape = data_matrix.shape)
     resid_filt_data_matrix = np.zeros(shape = data_matrix.shape)
     z_score_data_matrix = np.zeros(shape = data_matrix.shape)
@@ -328,6 +329,9 @@ def regress_movement_wm_csf_parameters(data_matrix,rp,mean_wm_ts,mean_csf_ts):
 
     resid_data_matrix = np.zeros(shape = data_matrix.shape)
 
+    import rpy
+    import rpy2
+
     #for i in [0,1]:
     for i in range(data_matrix.shape[0]):
         #print i
@@ -344,6 +348,9 @@ def regress_movement_wm_csf_parameters(data_matrix,rp,mean_wm_ts,mean_csf_ts):
 
     
 def regress_movement_wm_parameters(data_matrix,rp,mean_wm_ts):
+
+    import rpy
+    import rpy2
 
     resid_data_matrix = np.zeros(shape = data_matrix.shape)
 
@@ -368,6 +375,9 @@ def regress_movement_wm_parameters(data_matrix,rp,mean_wm_ts):
     
 def regress_movement_parameters(data_matrix,rp):
     
+    import rpy
+    import rpy2
+
     resid_data_matrix = np.zeros(shape = data_matrix.shape)
 
     #for i in [0,1]:
@@ -391,6 +401,9 @@ def regress_movement_parameters(data_matrix,rp):
 
 def regress_movement_parameters_rpy2(data_matrix,rp):
     
+    import rpy
+    import rpy2
+
     #from rpy2.robjects import FloatVector
     #from rpy2.robjects.packages import importr
 
@@ -616,7 +629,29 @@ def return_var_cor_mat(ts_mat,regressor_vect):
     
     return cor_mat,sderr_cor_mat,pval_cor_mat 
     
+############## return cor list (raw)
+
+
+def return_net_list(Z_cor_mat):
+
+    t2 = time.time()
+    
+    print Z_cor_mat.shape 
+    
+    x_sig,y_sig = np.where(Z_cor_mat != 0.0)
+        
+    net_list = np.array(np.column_stack((x_sig + 1,y_sig + 1,Z_cor_mat[x_sig,y_sig]*1000)),dtype = int)
+    
+    print net_list.shape
+    
+    t3 = time.time()
+    
+    print "Sparse Weighted correlation thresholding computation took " + str(t3-t2) + "s"
+    
+    return net_list
+    
 ############## return cor list after thresholding and/or distance removal
+
 
 def return_signif_conf_net_list(cor_mat,conf_cor_mat):
 
@@ -793,6 +828,152 @@ def return_mod_mask(mod_vect,coords,mask_shape):
 
     return mod_mask
 
+    
+def return_mod_mask_corres_rel_coords_neighbourhood(mod_vect,node_rel_coords,data_mask_shape):
+    
+    import numpy as np
+
+    import itertools as iter
+    
+    old_coords = np.transpose(np.array(np.vstack((node_rel_coords[:,0] * data_mask_shape[0],node_rel_coords[:,1] * data_mask_shape[1],node_rel_coords[:,2] * data_mask_shape[2])),dtype = 'int64'))
+    
+    print old_coords
+    print old_coords.shape
+
+    print np.min(old_coords[:,0]),np.max(old_coords[:,0])
+    print np.min(old_coords[:,1]),np.max(old_coords[:,1])
+    print np.min(old_coords[:,2]),np.max(old_coords[:,2])
+    
+    print data_mask_shape
+    
+    print node_rel_coords[old_coords[:,2] == 128,:]
+    
+    for i,max in enumerate(data_mask_shape):
+        old_coords[old_coords[:,i] == data_mask_shape[i],i] = data_mask_shape[i] - 1
+        
+    
+    print np.min(old_coords[:,0]),np.max(old_coords[:,0])
+    print np.min(old_coords[:,1]),np.max(old_coords[:,1])
+    print np.min(old_coords[:,2]),np.max(old_coords[:,2])
+    
+    #print node_corres
+    #print node_corres.shape
+    
+    #old_coords = coords[node_corres,:]
+    
+    #print old_coords.shape
+    
+    if old_coords.shape[0] != mod_vect.shape[0]:
+        print "Warning, incompatible size between old_coords {} and mod vect {}".format(old_coords.shape[0],mod_vect.shape[0])
+    
+    #print coord[1,:]
+    #mod_mask = np.empty(mask_shape)
+    
+    neighbourhood = 3
+    
+    mod_mask = np.zeros((data_mask_shape[0]+1 +2*neighbourhood,data_mask_shape[1]+1 +2*neighbourhood,data_mask_shape[2]+1 +2*neighbourhood),dtype = 'int')
+
+    #print mod_mask
+
+
+    #print coords
+
+    #print np.unique(mod_vect)
+
+    
+    neigh_range = range(-neighbourhood,neighbourhood+1)
+    
+    for mod_index in np.unique(mod_vect):
+    #for mod_index in [0]:
+
+        #print mod_index
+        mod_coord = old_coords[mod_vect == mod_index,:]
+
+        #print mod_coord
+        mod_coord_x,mod_coord_y,mod_coord_z = mod_coord[:,0],mod_coord[:,1],mod_coord[:,2]
+
+        
+        
+        for relative_coord in iter.product(neigh_range, repeat=3):
+
+            neigh_x = mod_coord_x + relative_coord[0] + neighbourhood
+            neigh_y = mod_coord_y + relative_coord[1] + neighbourhood
+            neigh_z = mod_coord_z + relative_coord[2] + neighbourhood
+
+            mod_mask[neigh_x,neigh_y,neigh_z ] = mod_index +1
+        
+        #print mod_mask[mod_coord_x,mod_coord_y,mod_coord_z ]
+        
+    #print np.column_stack(np.where(mod_mask == 4)).shape
+
+    return mod_mask
+
+def return_mod_mask_corres_rel_coords(mod_vect,node_rel_coords,data_mask_shape):
+    
+    import numpy as np
+
+    old_coords = np.transpose(np.array(np.vstack((node_rel_coords[:,0] * data_mask_shape[0],node_rel_coords[:,1] * data_mask_shape[1],node_rel_coords[:,2] * data_mask_shape[2])),dtype = 'int64'))
+    
+    print old_coords
+    print old_coords.shape
+
+    print np.min(old_coords[:,0]),np.max(old_coords[:,0])
+    print np.min(old_coords[:,1]),np.max(old_coords[:,1])
+    print np.min(old_coords[:,2]),np.max(old_coords[:,2])
+    
+    print data_mask_shape
+    
+    print node_rel_coords[old_coords[:,2] == 128,:]
+    
+    for i,max in enumerate(data_mask_shape):
+        old_coords[old_coords[:,i] == data_mask_shape[i],i] = data_mask_shape[i] - 1
+        
+    
+    print np.min(old_coords[:,0]),np.max(old_coords[:,0])
+    print np.min(old_coords[:,1]),np.max(old_coords[:,1])
+    print np.min(old_coords[:,2]),np.max(old_coords[:,2])
+    
+    #print node_corres
+    #print node_corres.shape
+    
+    #old_coords = coords[node_corres,:]
+    
+    #print old_coords.shape
+    
+    if old_coords.shape[0] != mod_vect.shape[0]:
+        print "Warning, incompatible size between old_coords {} and mod vect {}".format(old_coords.shape[0],mod_vect.shape[0])
+    
+    #print coord[1,:]
+    #mod_mask = np.empty(mask_shape)
+    mod_mask = np.zeros(data_mask_shape)
+
+    #print mod_mask
+
+
+    #print coords
+
+    #print np.unique(mod_vect)
+
+    for mod_index in np.unique(mod_vect):
+    #for mod_index in [0]:
+
+        #print mod_index
+        mod_coord = old_coords[mod_vect == mod_index,:]
+
+        #print mod_coord
+        mod_coord_x,mod_coord_y,mod_coord_z = mod_coord[:,0],mod_coord[:,1],mod_coord[:,2]
+
+        mod_mask[mod_coord_x,mod_coord_y,mod_coord_z ] = mod_index +1
+        
+        #print mod_mask[mod_coord_x,mod_coord_y,mod_coord_z ]
+        
+    #print np.column_stack(np.where(mod_mask == 4)).shape
+
+    return mod_mask
+
+    
+    
+    
 def return_mod_mask_corres(mod_vect,node_corres,coords,mask_shape):
     
     import numpy as np
@@ -1730,4 +1911,373 @@ def read_Pajek_corres_nodes(Pajek_net_file):
         f.close()
         
     return node_corres
+    
+###### from modified Pajek file, read coords
+
+def read_Pajek_rel_coords(Pajek_net_file):
+    
+    with open(Pajek_net_file,'r') as f :
+        
+        lines = f.readlines()
+        
+        line_nb_elements = lines[0]
+        
+        nb_elements = int(line_nb_elements.split(' ')[1])
+        
+        print nb_elements
+        
+        node_rel_coords = np.empty((nb_elements,3),dtype = 'float')
+        
+        node_lines = lines[1:(nb_elements+1)]
+        
+        #print lines
+        
+        for i,line in enumerate(node_lines):
+            #print line
+            
+            node_line = line.split(' ')
+            
+            #print node_line
+            
+            node_rel_coords[i,0] = node_line[2]
+            node_rel_coords[i,1] = node_line[3]
+            node_rel_coords[i,2] = node_line[4]
+            
+            #print node_rel_coords[i,:] 
+            
+        f.close()
+        
+    return node_rel_coords
+   
+   
+    ##########" return corres_nodes and sparse matrix from pajek file
+    
+def read_Pajek_corres_nodes_and_sparse_matrix(Pajek_net_file):
+
+    with open(Pajek_net_file,'r') as f :
+        
+        lines = f.readlines()
+        
+        line_nb_elements = lines[0]
+        
+        nb_elements = int(line_nb_elements.split(' ')[1])
+        
+        print nb_elements
+        
+        node_corres = np.empty((nb_elements),dtype = 'int')
+        
+        node_lines = lines[1:(nb_elements+1)]
+        
+        #print lines
+        
+        for i,line in enumerate(node_lines):
+            #print line
+            
+            new_index,old_index = line.split(' ')
+            
+            #print i+1, new_index, old_index
+            
+            #node_corres[i] = old_index
+            
+            if (i+1) == int(new_index) :
+                node_corres[i] = int(old_index)-1
+            else:
+                print "Warning, incompatible indexes {} {}".format(new_index,i+1)
+            
+            
+            
+        list_sparse_matrix = [line.strip().split(' ') for line in lines[(nb_elements+2):]]
+        
+        np_list_sparse_matrix = np.transpose(np.array(list_sparse_matrix,dtype = 'int64'))
+        
+        #print np_list_sparse_matrix.shape
+        
+        #np_ij_lines = np.array(ij_lines,dtype = 'int64')
+        #np_val_lines = np.array(val_lines,dtype = 'int64')
+        
+        #print np_ij_lines
+        #print np_val_lines
+        
+        #print np_list_sparse_matrix[2,:].shape
+        #print np_list_sparse_matrix[:2,:].shape
+        
+        #sparse_matrix = sp.coo_matrix((np_list_sparse_matrix[2,:],(np_list_sparse_matrix[0,:]-1,np_list_sparse_matrix[1,:]-1)), shape = (nb_elements,nb_elements))
+        sparse_matrix = sp.coo_matrix((np_list_sparse_matrix[2,:],(np_list_sparse_matrix[0,:]-1,np_list_sparse_matrix[1,:]-1)), shape = (nb_elements,nb_elements))
+        
+        #print sparse_matrix
+        #print sparse_matrix.todense()[168,168]
+        
+        
+        #print np.sum(sparse_matrix.todense()[168,:],axis = 0)
+        
+        #[168,160:170]
+        
+        #print sparse_matrix.shape
+        #print sparse_matrix.todense().shape
+        
+        f.close()
+        
+    return node_corres,sparse_matrix
+   
+       
+################################################################ Node roles 
+
+
+def return_all_Z_com_degree(community_vect,dense_mat):
+    
+    degree_vect = np.sum(dense_mat != 0,axis = 1)
+    
+    print "All degree vect"
+    
+    print degree_vect
+    print degree_vect.shape
+    
+    community_indexes = np.unique(community_vect)
+    
+    #print community_indexes
+    
+    all_Z_com_degree = np.zeros(shape = (community_vect.shape[0]))
+    
+    for com_index in community_indexes:
+    
+        print np.where(com_index == community_vect)
+        
+        com_degree = degree_vect[com_index == community_vect]
+        
+        
+        print "Commmunity degree vect"
+        print com_degree
+        print com_degree.shape
+        
+        if com_degree.shape[0] > 1:
+            
+            std_com_degree = np.std(com_degree)
+            
+            print std_com_degree
+            
+            mean_com_degree = np.mean(com_degree)
+            
+            print mean_com_degree
+            Z_com_degree = (com_degree - mean_com_degree) / std_com_degree
+            
+            print Z_com_degree
+            
+            
+            all_Z_com_degree[com_index == community_vect] = Z_com_degree
+            
+        else:
+            all_Z_com_degree[com_index == community_vect] = 0
+            
+    return all_Z_com_degree
+    
+def return_all_participation_coeff(community_vect,dense_mat):
+
+    degree_vect = np.array(np.sum(dense_mat != 0,axis = 1),dtype = 'float')
+    
+    print degree_vect
+    print degree_vect.shape
+    
+    
+    community_indexes = np.unique(community_vect)
+    
+    print community_indexes
+    
+    all_participation_coeff = np.ones(shape = (community_vect.shape[0]),dtype = 'float')
+    
+    for com_index in community_indexes:
+    
+        print np.where(com_index == community_vect)
+        
+        nod_index = (com_index == community_vect)
+        
+        print np.sum(nod_index,axis = 0)
+        
+        com_matrix = dense_mat[:,nod_index]
+        
+        degree_com_vect = np.sum(com_matrix,axis = 1,dtype = 'float')
+        
+        print degree_com_vect.shape
+
+        rel_com_degree = np.square(degree_com_vect/degree_vect)
+        
+        print rel_com_degree
+        
+        all_participation_coeff = all_participation_coeff - rel_com_degree
+        
+    print all_participation_coeff
+        
+    return all_participation_coeff
+
+def return_node_roles(all_Z_com_degree ,all_participation_coeff):
+    
+    if (all_Z_com_degree.shape[0] != all_participation_coeff.shape[0]):
+        print "Warning, all_Z_com_degree %d should have same length as all_participation_coeff %d "%(all_Z_com_degree.shape[0],all_participation_coeff.shape[0])
+        return 0
+        
+        
+    nod_roles = np.zeros(shape = (all_Z_com_degree.shape[0],2),dtype = 'int')
+    
+    ### hubs are at 2,non-hubs are at 1
+    hubs = all_Z_com_degree > 2.5
+    non_hubs =  all_Z_com_degree <= 2.5
+    
+    nod_roles[hubs,0] = 2
+    nod_roles[non_hubs,0] = 1
+    
+    ### for non-hubs
+    #ultraperipheral nodes
+    ultraperi_non_hubs = np.logical_and(all_participation_coeff < 0.05,non_hubs == True)
+    
+    print np.sum(ultraperi_non_hubs,axis = 0)
+    nod_roles[ultraperi_non_hubs,1] = 1
+    
+    #ultraperipheral nodes
+    peri_non_hubs = np.logical_and(np.logical_and(0.05 <= all_participation_coeff,all_participation_coeff < 0.62),non_hubs == True)
+    
+    print np.sum(peri_non_hubs,axis = 0)
+    nod_roles[peri_non_hubs,1] = 2
+    
+    #non-hub connectors
+    non_hub_connectors = np.logical_and(np.logical_and(0.62 <= all_participation_coeff,all_participation_coeff < 0.8),non_hubs == True)
+    
+    print np.sum(non_hub_connectors,axis = 0)
+    nod_roles[non_hub_connectors,1] = 3
+    
+    
+    #kinless non-hubs
+    kin_less_non_hubs = np.logical_and(0.8 <= all_participation_coeff,non_hubs == True)
+    
+    print np.sum(kin_less_non_hubs,axis = 0)
+    nod_roles[kin_less_non_hubs,1] = 4
+    
+    ### for hubs
+    #provincial hubs
+    prov_hubs = np.logical_and(all_participation_coeff < 0.3,hubs == True)
+    
+    print np.sum(prov_hubs,axis = 0)
+    nod_roles[prov_hubs,1] = 5
+    
+    
+    #hub connectors
+    hub_connectors = np.logical_and(np.logical_and(0.3 <= all_participation_coeff,all_participation_coeff < 0.75),hubs == True)
+    
+    print np.sum(hub_connectors,axis = 0)
+    nod_roles[hub_connectors,1] = 6
+    
+    
+    #kinless hubs
+    kin_less_hubs = np.logical_and(0.75 <= all_participation_coeff,hubs == True)
+    
+    print np.sum(kin_less_hubs,axis = 0)
+    nod_roles[kin_less_hubs,1] = 7
+    
+    print nod_roles
+    
+    return nod_roles
+    
+    
+def compute_roles(community_vect,sparse_mat):
+
+    
+    import numpy as np
+    
+    dense_mat = sparse_mat.todense()
+    
+    print dense_mat
+    
+    undir_dense_mat = dense_mat + np.transpose(dense_mat)
+    
+    bin_dense_mat = np.array(undir_dense_mat != 0,dtype = int)
+    
+    print bin_dense_mat
+    
+    ##################################### within community Z-degree #########################
+
+    all_Z_com_degree = return_all_Z_com_degree(community_vect,bin_dense_mat)
+    
+    print all_Z_com_degree
+    
+    ##################################### participation_coeff ###############################
+    
+    all_participation_coeff = return_all_participation_coeff(community_vect,bin_dense_mat)
+    
+    print all_participation_coeff
+    
+    node_roles = return_node_roles(all_Z_com_degree ,all_participation_coeff)
+    
+    return node_roles,all_Z_com_degree,all_participation_coeff
+
+#################################################################### reordering #########################################################
+
+def force_order(community_vect,node_orig_indexes):
+    
+    reordered_community_vect = np.zeros(shape = community_vect.shape, dtype = 'int')-1
+    
+    list_used_mod_index = []
+    
+    #print np.unique(community_vect)
+    
+    nb_mod_init = np.unique(community_vect).shape[0]
+    
+    index = 0
+    
+    for i in np.unique(node_orig_indexes):
+    
+        print "For spm contrast index " + str(i)
+        
+        c = Counter(community_vect[node_orig_indexes == i])
+        
+        nb_Rois_in_contrast = np.sum(node_orig_indexes == i)
+        
+        for count in c.most_common():
+        
+            (most_common_mod_index,most_common_number) = count
+            
+            print most_common_mod_index
+            
+            if most_common_mod_index != -1:
+                    
+                #(most_common_mod_index,most_common_number) = c.most_common(1)[0]
+                
+                
+                print "Found module index %d represents %f of Rois in constrast" %(most_common_mod_index,float(most_common_number)/nb_Rois_in_contrast) 
+                
+                reordered_community_vect[community_vect == most_common_mod_index] = index
+                
+                list_used_mod_index.append(most_common_mod_index)
+                
+                community_vect[community_vect == most_common_mod_index] = -1
+                
+                index = index +1
+                
+                break
+                
+    print "after dist reorg"
+    
+    print community_vect
+    
+    for i in np.unique(community_vect):
+    
+        if i == -1:
+            
+            continue
+        
+        if i in np.unique(reordered_community_vect):
+        
+            print "Warning, %d is already present in reordered_community_vect"%(i)
+            
+        else:
+            
+            reordered_community_vect[community_vect == i] = index
+            
+            index = index +1
+            
+    print np.unique(reordered_community_vect)
+    
+    nb_mod_fin = np.unique(reordered_community_vect).shape[0]
+    
+    if nb_mod_init != nb_mod_fin:
+        print "Warning, nb_mod_init (%d) != nb_mod_fin (%d) "%(nb_mod_init,nb_mod_fin)
+        
+    return reordered_community_vect
     
