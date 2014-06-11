@@ -107,21 +107,27 @@ def plot_hist(plot_hist_file,data,nb_bins = 100):
     #fig2.close()
     del fig2
     
-def plot_signals(plot_signals_file,signals_matrix):
+def plot_signals(plot_signals_file,signals_matrix,colors = ['blue']):
     
     fig2 = plt.figure()
     ax = fig2.add_subplot(1,1,1)
     
-    print signals_matrix.shape[0]
-    print len(signals_matrix.shape)
+    #print signals_matrix.shape[0]
+    #print len(signals_matrix.shape)
     
     if len(signals_matrix.shape) == 1:
         ax.plot(range(signals_matrix.shape[0]),signals_matrix[:]) 
     
     else:
         for i in range(signals_matrix.shape[0]): 
-            ax.plot(range(signals_matrix.shape[1]),signals_matrix[i,:]) 
-     
+        
+            if len(colors) == signals_matrix.shape[0]:
+                print i,colors[i]
+                
+                ax.plot(range(signals_matrix.shape[1]),signals_matrix[i,:],colors[i]) 
+                
+            else:
+                ax.plot(range(signals_matrix.shape[1]),signals_matrix[i,:])
      
     #ax.plot(,signals_matrix)
     fig2.savefig(plot_signals_file)
@@ -131,21 +137,31 @@ def plot_signals(plot_signals_file,signals_matrix):
     del fig2
     
 
-def plot_sep_signals(plot_signals_file,signals_matrix):
+def plot_sep_signals(plot_signals_file,signals_matrix,colors = [],range_signal = -1):
     
     fig2 = plt.figure()
     ax = fig2.add_subplot(1,1,1)
     
-    range_signal = np.amax(signals_matrix) - np.amin(signals_matrix)
-    
-    print range_signal
-    
-    print signals_matrix.shape
-    
-    for i in range(signals_matrix.shape[0]): 
-        #print range_signal*i
-        ax.plot(signals_matrix[i,:] + range_signal*i) 
+    if range_signal == -1:
         
+        range_signal = np.amax(signals_matrix) - np.amin(signals_matrix)
+    
+    #print range_signal
+    
+    #print signals_matrix.shape
+    
+    if len(colors) == signals_matrix.shape[0]:
+        
+        for i in range(signals_matrix.shape[0]): 
+            print range_signal*i
+            ax.plot(signals_matrix[i,:] + range_signal*i,colors[i]) 
+            
+    else:
+
+        for i in range(signals_matrix.shape[0]): 
+            #print range_signal*i
+            ax.plot(signals_matrix[i,:] + range_signal*i) 
+            
     #for i in range(signals_matrix.shape[0]): 
         #print range_signal*i
         
@@ -155,14 +171,38 @@ def plot_sep_signals(plot_signals_file,signals_matrix):
     
     #ax.plot(range(signals_matrix.shape[1]),sep_signals_matrix) 
         
-    
-    
+    x1,x2,y1,y2 = ax.axis()
+    ax.axis((x1,x2,-2.0,y2))
+
     fig2.savefig(plot_signals_file)
     
     plt.close(fig2)
     #fig2.close()
     del fig2
+        
+    return
+    
+def plot_curve(plot_curve_file,curve_data,x_range,label):
+    
 
+    fig2 = plt.figure()
+    ax = fig2.add_subplot(1,1,1)
+    
+    
+    #print range_signal
+    
+    print curve_data.shape
+    
+    
+    ax.plot(x_range,curve_data, color = "blue",label = label)
+            
+    legend = ax.legend(loc='upper center', shadow=True)
+    
+    fig2.savefig(plot_curve_file)
+    
+    plt.close(fig2)
+    #fig2.close()
+    del fig2
     
 def plot_diff_signals(plot_signals_file,signals_matrix):
     
@@ -327,36 +367,36 @@ def plot_diff_signals_errorbar_by_lines(plot_diff_signals_path,signals_matrix,er
     
     
     
-def plot_sep_signals(plot_signals_file,signals_matrix):
+#def plot_sep_signals(plot_signals_file,signals_matrix):
     
-    fig2 = plt.figure()
-    ax = fig2.add_subplot(1,1,1)
+    #fig2 = plt.figure()
+    #ax = fig2.add_subplot(1,1,1)
     
-    range_signal = np.amax(signals_matrix) - np.amin(signals_matrix)
+    #range_signal = np.amax(signals_matrix) - np.amin(signals_matrix)
     
-    print range_signal
+    #print range_signal
     
-    print signals_matrix.shape
+    #print signals_matrix.shape
     
-    for i in range(signals_matrix.shape[0]): 
-        #print range_signal*i
-        ax.plot(signals_matrix[i,:] + range_signal*i) 
-        
     #for i in range(signals_matrix.shape[0]): 
-        #print range_signal*i
+        ##print range_signal*i
+        #ax.plot(signals_matrix[i,:] + range_signal*i) 
         
-        #sep_signals_matrix[i,:] = signals_matrix[i,:] + range_signal*i
+    ##for i in range(signals_matrix.shape[0]): 
+        ##print range_signal*i
         
-    #print sep_signals_matrix
+        ##sep_signals_matrix[i,:] = signals_matrix[i,:] + range_signal*i
+        
+    ##print sep_signals_matrix
     
-    #ax.plot(range(signals_matrix.shape[1]),sep_signals_matrix) 
+    ##ax.plot(range(signals_matrix.shape[1]),sep_signals_matrix) 
         
     
     
-    fig2.savefig(plot_signals_file)
+    #fig2.savefig(plot_signals_file)
     
-    plt.close(fig2)
-    #fig2.close()
-    del fig2
+    #plt.close(fig2)
+    ##fig2.close()
+    #del fig2
     
     
