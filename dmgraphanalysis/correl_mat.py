@@ -872,3 +872,27 @@ def plot_hist_Z_cor_mat(Z_cor_mat_file):
     
     return plot_hist_Z_cor_mat_file,plot_heatmap_Z_cor_mat_file
     
+##### spm_mask and all infos from contrast index
+def extract_signif_contrast_mask(spm_contrast_index):
+
+    import os
+    from define_variables import nipype_analyses_path,peak_activation_mask_analysis_name,ROI_mask_prefix
+    
+    #### indexed_mask
+    indexed_mask_rois_file =  os.path.join(nipype_analyses_path,peak_activation_mask_analysis_name, "indexed_mask-" + ROI_mask_prefix + "_spm_contrast" + str(spm_contrast_index) + ".nii")
+        
+    #### saving ROI coords as textfile
+    ### ijk coords
+    coord_rois_file =  os.path.join(nipype_analyses_path,peak_activation_mask_analysis_name, "coords-" + ROI_mask_prefix + "_spm_contrast" + str(spm_contrast_index) + ".txt")
+
+    ### coords in MNI space
+    MNI_coord_rois_file =  os.path.join(nipype_analyses_path,peak_activation_mask_analysis_name, "coords-MNI-" + ROI_mask_prefix + "_spm_contrast" + str(spm_contrast_index) + ".txt")
+
+    #### saving ROI coords as textfile
+    label_rois_file =  os.path.join(nipype_analyses_path,peak_activation_mask_analysis_name, "labels-" + ROI_mask_prefix + "_spm_contrast" + str(spm_contrast_index) + ".txt")
+    #label_rois_file =  os.path.join(nipype_analyses_path,peak_activation_mask_analysis_name, "labels-" + ROI_mask_prefix + "_jane.txt")
+        
+    #### all info in a text file
+    info_rois_file  =  os.path.join(nipype_analyses_path,peak_activation_mask_analysis_name, "info-" + ROI_mask_prefix + "_spm_contrast" + str(spm_contrast_index) + ".txt")
+
+    return indexed_mask_rois_file,coord_rois_file,MNI_coord_rois_file,label_rois_file,info_rois_file
