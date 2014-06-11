@@ -28,6 +28,49 @@ def info_CI(X,Y):
 
     ###################################################################################### pairwise/nodewise stats ###########################################################################################################
     
+    
+def return_signif_bin_vect(p_values,fdr_alpha = 0.05):
+
+    print p_values
+    
+    
+    N = p_values.shape[0]
+    
+    
+    
+    order =  p_values.argsort()
+    
+    init_order = range(N)
+    
+    
+    print order
+    
+    sorted_p_values= p_values[order]
+    
+    print sorted_p_values
+    
+    ### by default, code = 1 (cor at 0.05)
+    sorted_order = np.ones(shape = N)
+    
+    ################ uncor #############################
+    
+    sorted_order[p_values > fdr_alpha] = 0
+    
+    ################ fdr ###############################
+    seq = np.arange(N,0,-1)
+    
+    seq_fdr_p_values = fdr_alpha/seq
+    
+    print seq_fdr_p_values
+    
+    sorted_order[sorted_p_values < seq_fdr_p_values] = 2
+    
+    ################# bonferroni #######################
+    
+    sorted_order[sorted_p_values < fdr_alpha/N] = 4
+    
+    return sorted_order
+    
 def return_signif_pval_vect(sort_np_list_diff,t_test_thresh_fdr):
 
     n = sort_np_list_diff.shape[0]
@@ -129,13 +172,13 @@ def return_signif_binom_mat(sort_np_list_diff,conf_interval_binom_fdr):
     
     
     
-    signif_signed_vect = np.zeros((N),dtype = 'int')
+    #signif_signed_vect = np.zeros((N),dtype = 'int')
     
-    signif_signed_vect[np.array(signif_fdr[:,0],dtype = int)] = np.array(signif_fdr[:,2],dtype = int)
+    #signif_signed_vect[np.array(signif_fdr[:,0],dtype = int)] = np.array(signif_fdr[:,2],dtype = int)
     
-    print signif_signed_vect
+    #print signif_signed_vect
     
-    return signif_signed_vect
+    #return signif_signed_vect
 
     
     
@@ -445,3 +488,67 @@ def compute_nodewise_t_test_vect(d_stacked, nx, ny):
     
     return t_val_vect
     
+######################## correl ######################################
+
+def compute_pairwise_correl_fdr(X,behav_score,correl_thresh_fdr):
+
+
+    from scipy.stats.stats import pearsonr
+
+    # number of nodes
+    N = X.shape[0]
+   
+    list_diff = []
+    
+    for i,j in it.combinations(range(N), 2):
+        
+        #t_stat_zalewski = ttest2(X[i,j,:],Y[i,j,:])
+        
+        r_stat,p_val = pearsonr(X[i,j,:],behav_score)
+        
+        #print i,j,p_val,r_stat
+        
+        list_diff.append([i,j,p_val,np.sign(r_stat)])
+        
+    #print list_diff
+        
+    np_list_diff = np.array(list_diff)
+   
+    #print np_list_diff
+    
+    order =  np_list_diff[:,2].argsort()
+    
+    #print order
+    
+    sort_np_list_diff = np_list_diff[order[::-1]]
+    
+    #print sort_np_list_diff.shape[0]
+    
+    signif_fdr = return_signif_pval_mat(sort_np_list_diff,correl_thresh_fdr)
+    
+    #print signif_fdr
+    
+    
+    print np.sum(signif_fdr[:,3] == 0.0),np.sum(signif_fdr[:,3] == 1.0),np.sum(signif_fdr[:,3] == 2.0),np.sum(signif_fdr[:,3] == 4.0),np.sum(signif_fdr[:,3] == -1.0),np.sum(signif_fdr[:,3] == -2.0),np.sum(signif_fdr[:,3] == -4.0)
+    
+    signif_signed_adj_mat = np.zeros((N,N),dtype = 'int')
+    
+        
+    signif_i = np.array(signif_fdr[:,0],dtype = int)
+    signif_j = np.array(signif_fdr[:,1],dtype = int)
+    
+    signif_sign = np.array(signif_fdr[:,3],dtype = int)
+    
+    print signif_i,signif_j
+    
+    print signif_signed_adj_mat[signif_i,signif_j] 
+    
+    #print signif_sign
+    
+    
+    
+    signif_signed_adj_mat[signif_i,signif_j] = signif_signed_adj_mat[signif_j,signif_i] = signif_sign
+    
+    print signif_signed_adj_mat
+    
+    return signif_signed_adj_mat
