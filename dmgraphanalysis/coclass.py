@@ -244,67 +244,6 @@ def export_lol_mask_coclass_file(rada_lol_file,Pajek_net_file,gm_coords_file,mas
     
     return lol_mask_file
     
-    
-    
-def plot_igraph_modules_coclass_rada(rada_lol_file,Pajek_net_file,net_list_file,gm_mask_coords_file,labels_file):
-    
-    import numpy as np
-    import nibabel as nib
-    import os
-    import csv
-        
-    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes,read_List_net_file
-    
-    from dmgraphanalysis.plot_igraph import plot_3D_igraph_modules_net_list
-
-    print 'loading labels'
-    
-    labels = [line.strip() for line in open(labels_file)]
-    
-    
-    print 'Loading node_corres'
-    
-    node_corres = read_Pajek_corres_nodes(Pajek_net_file)
-    
-    print np.min(node_corres),np.max(node_corres)
-    print node_corres.shape
-    
-    print 'Loading gm mask coords'
-    
-    gm_mask_coords = np.array(np.loadtxt(gm_mask_coords_file),dtype = 'int64')
-    
-    print gm_mask_coords.shape
-    
-    
-    print "Loading community belonging file" + rada_lol_file
-
-    community_vect = read_lol_file(rada_lol_file)
-    
-    #print community_vect
-    print community_vect.shape
-    
-    print "loading net_list_net as list"
-    
-    net_list = read_List_net_file(net_list_file)
-    
-    #print net_list
-    
-    print 'extracting node coords'
-    
-    node_coords = gm_mask_coords[node_corres,:]
-    
-    print node_coords
-    
-    
-    print "plotting Z_cor_mat_modules_file with igraph"
-    
-    coclass_all_modules_file = plot_3D_igraph_modules_net_list(community_vect,node_coords,net_list,gm_mask_coords,labels)
-    
-    
-    return coclass_all_modules_file
-    
-    
-    
     ################################################# reorder
     
 def reorder_hclust_matrix(coclass_matrix_file,method_hie = 'ward'):
@@ -1031,7 +970,7 @@ def prepare_nbs_stats_rada(mod_files,coords_files,node_corres_files,gm_mask_coor
     
     return group_coclass_matrix_file,sum_coclass_matrix_file,sum_possible_edge_matrix_file,norm_coclass_matrix_file
         
-########################################################### only function to be use in run_mean_correl.py #################################################
+########################################################### only functions to be use in run_mean_correl.py #################################################
 
 def prepare_mean_correlation_matrices(cor_mat_files,coords_files,gm_mask_coords_file):
     
@@ -1134,4 +1073,219 @@ def prepare_mean_correlation_matrices(cor_mat_files,coords_files,gm_mask_coords_
             
     return group_cor_mat_matrix_file,sum_cor_mat_matrix_file,sum_possible_edge_matrix_file,avg_cor_mat_matrix_file
         
+
+def prepare_signif_correlation_matrices(cor_mat_files,conf_cor_mat_files,coords_files,gm_mask_coords_file):
+
+
+    import numpy as np
+    import os
+
+    #import nibabel as nib
+    
+    from dmgraphanalysis.utils_cor import return_corres_correl_mat
+    #from utils_cor import read_Pajek_corres_nodes,read_lol_file
+    
+    print 'loading gm mask corres'
+    
+    gm_mask_coords = np.loadtxt(gm_mask_coords_file)
+    
+    print gm_mask_coords.shape
         
+    #### read matrix from the first group
+    #print Z_cor_mat_files
+    
+    sum_signif_cor_mat = np.zeros((gm_mask_coords.shape[0],gm_mask_coords.shape[0]),dtype = float)
+    print sum_signif_cor_mat.shape
+    
+    sum_possible_edge_mat = np.zeros((gm_mask_coords.shape[0],gm_mask_coords.shape[0]),dtype = int)
+    print sum_possible_edge_mat.shape
+    
+    
+    
+    group_signif_cor_mat = np.zeros((gm_mask_coords.shape[0],gm_mask_coords.shape[0],len(cor_mat_files)),dtype = float)
+    print group_signif_cor_mat.shape
+    
+    if len(cor_mat_files) != len(coords_files):
+        print "warning, length of cor_mat_files, coords_files are imcompatible {} {} {}".format(len(cor_mat_files),len(coords_files))
+    
+    for index_file in range(len(cor_mat_files)):
+        
+        print cor_mat_files[index_file]
+        
+        if os.path.exists(cor_mat_files[index_file]) and os.path.exists(coords_files[index_file]) and os.path.exists(conf_cor_mat_files[index_file]):
+        
+            cor_mat = np.load(cor_mat_files[index_file])
+            print cor_mat.shape
+            
+            conf_cor_mat = np.load(conf_cor_mat_files[index_file])
+            print conf_cor_mat.shape
+            
+            signif_cor_mat = conf_cor_mat < np.abs(cor_mat)
+            
+            print signif_cor_mat.shape
+            
+            coords = np.loadtxt(coords_files[index_file])
+            print coords.shape
+            
+            corres_signif_cor_mat,possible_edge_mat = return_corres_correl_mat(signif_cor_mat,coords,gm_mask_coords)
+            
+            group_signif_cor_mat[:,:,index_file] = corres_signif_cor_mat
+            
+            sum_signif_cor_mat += corres_signif_cor_mat
+            
+            sum_possible_edge_mat += possible_edge_mat
+            
+        else:
+            print "Warning, one or more files between " + cor_mat_files[index_file] + ', ' + coords_files[index_file] + ', ' + conf_cor_mat_files[index_file]+ " do not exists"
+        
+    print 'computing sum_signif_cor_mat'
+    
+    sum_signif_cor_mat = np.sum(group_signif_cor_mat,axis = 2)
+    
+    print 'saving group_signif cor_mat matrix'
+    
+    group_signif_cor_mat_file= os.path.abspath('group_signif_cor_mat.npy')
+    
+    np.save(group_signif_cor_mat_file,group_signif_cor_mat)
+    
+    
+    print 'saving sum_signif cor_mat matrix'
+    
+    sum_signif_cor_mat_file = os.path.abspath('sum_signif_cor_mat.npy')
+    
+    np.save(sum_signif_cor_mat_file,sum_signif_cor_mat)
+    
+    
+    print 'saving sum_possible_edge matrix'
+    
+    sum_possible_edge_mat_file = os.path.abspath('sum_possible_edge_mat.npy')
+    
+    np.save(sum_possible_edge_mat_file,sum_possible_edge_mat)
+    
+    
+    
+    
+    
+    print 'saving avg_cor_mat_matrix'
+    
+    norm_signif_cor_mat_file  = os.path.abspath('norm_signif_cor_mat.npy')
+    
+    norm_signif_cor_mat = np.zeros((gm_mask_coords.shape[0],gm_mask_coords.shape[0]),dtype = int)
+    
+    if (np.where(np.array(sum_possible_edge_mat == 0)) != 0):
+    
+            norm_signif_cor_mat = np.divide(np.array(sum_signif_cor_mat,dtype = float),np.array(sum_possible_edge_mat,dtype = float))
+            
+            np.save(norm_signif_cor_mat_file,norm_signif_cor_mat)
+    
+    else:
+            print "!!!!!!!!!!!!!!!!!!!!!!Breaking!!!!!!!!!!!!!!!!!!!!!!!!, found 0 elements in norm_signif_cor_mat"
+            return
+            
+    
+    return group_signif_cor_mat_file,sum_signif_cor_mat_file,sum_possible_edge_mat_file,norm_signif_cor_mat_file
+        
+        
+        
+
+def compute_correl_by_coclassmod(Z_cor_mat_files,coords_files,gm_mask_coords_file,lol_coclassmod_file,node_corres_coclassmod_file):
+    
+    import numpy as np
+    import os
+
+    #import nibabel as nib
+    
+    from utils_cor import return_coclass_mat_list_by_module,return_corres_correl_mat
+    from utils_cor import read_Pajek_corres_nodes,read_lol_file
+    
+    print 'loading gm mask corres'
+    
+    gm_mask_coords = np.loadtxt(gm_mask_coords_file)
+    
+    print gm_mask_coords.shape
+        
+        
+    print 'loading coclassmod_file'
+    
+    community_vect = read_lol_file(lol_coclassmod_file)
+    print "community_vect coclassmod:"
+    print community_vect.shape
+    
+    node_corres_vect = read_Pajek_corres_nodes(node_corres_coclassmod_file)
+    print "node_corres_vect coclassmod:"
+    print node_corres_vect.shape
+    
+    
+    print "coords_subj coclassmod:"
+    corres_coords = gm_mask_coords[node_corres_vect,:]
+        
+    coclass_mat_list,possible_edge_mat = return_coclass_mat_list_by_module(community_vect,corres_coords,gm_mask_coords)
+    
+    for coclass_mat_mod in coclass_mat_list:
+    
+        np.fill_diagonal(coclass_mat_mod,0)
+        
+        
+    np.fill_diagonal(possible_edge_mat,1)
+            
+    print len(coclass_mat_list)
+    
+    if len(Z_cor_mat_files) != len(coords_files):
+        print "warning, length of Z_cor_mat_files, coords_files are imcompatible {} {} {}".format(len(Z_cor_mat_files),len(coords_files))
+    
+    
+    density_correl_by_mod_by_subj = np.zeros((len(Z_cor_mat_files),len(coclass_mat_list)),dtype = 'float')
+        
+    
+    
+    for index_file in range(len(Z_cor_mat_files)):
+        
+        print Z_cor_mat_files[index_file]
+        
+        if os.path.exists(Z_cor_mat_files[index_file]) and os.path.exists(coords_files[index_file]):
+        
+            Z_cor_mat = np.load(Z_cor_mat_files[index_file])
+            print Z_cor_mat.shape
+            
+            
+            coords = np.loadtxt(coords_files[index_file])
+            #print coords.shape
+            
+            
+            
+            corres_cor_mat,possible_edge_mat = return_corres_correl_mat(Z_cor_mat,coords,gm_mask_coords)
+                        
+            np.fill_diagonal(corres_cor_mat,0)
+            
+            np.fill_diagonal(possible_edge_mat,1)
+            
+            print corres_cor_mat.shape
+            
+            for mod_index,coclass_mat_mod in enumerate(coclass_mat_list):
+            
+                print coclass_mat_mod.shape
+                
+                correl_density_mod = np.mean(corres_cor_mat[coclass_mat_mod == 1],axis = 0)
+                correl_density_full = np.mean(corres_cor_mat[possible_edge_mat == 1],axis = 0)
+                
+                #print correl_density_mod
+                print correl_density_mod,correl_density_full
+                
+                density_correl_by_mod_by_subj[index_file,mod_index] = correl_density_mod/correl_density_full
+            
+            
+        else:
+            print "Warning, one or more files between " + mod_files[index_file] + ',' + node_corres_files[index_file] + ', ' + coords_files[index_file] + " do not exists"
+        
+    print density_correl_by_mod_by_subj
+    
+    
+    print 'saving density_correl_by_mod_by_subj'
+    
+    density_correl_by_mod_by_subj_file = os.path.abspath('density_correl_by_mod_by_subj.txt')
+    
+    np.savetxt(density_correl_by_mod_by_subj_file,density_correl_by_mod_by_subj,fmt = "%1.3f")
+    
+    return density_correl_by_mod_by_subj_file
+    
+       
