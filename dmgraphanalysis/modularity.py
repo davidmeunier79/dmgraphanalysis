@@ -407,6 +407,48 @@ def compute_signif_conf_Z_list(cor_mat_file,conf_cor_mat_file,coords_file):
     #return net_List_file, net_Louvain_file
     
     
+def compute_full_Z_list(Z_cor_mat_file,coords_file):       
+        
+    import rpy,os
+    import nibabel as nib
+    import numpy as np
+    
+    from dmgraphanalysis.utils_cor import export_List_net_from_list,export_Louvain_net_from_list
+    
+    from dmgraphanalysis.utils_cor import return_net_list
+    
+    print "loading Z_cor_mat_file"
+    
+    Z_cor_mat = np.load(Z_cor_mat_file)
+    
+    print 'load coords'
+    
+    coords = np.array(np.loadtxt(coords_file),dtype = int)
+    
+    ## compute Z_list 
+    
+    print "computing Z_list by thresholding Z_cor_mat"
+    
+    Z_list = return_net_list(Z_cor_mat)
+    
+    ## Z correl_mat as list of edges
+    
+    print "saving Z_list as list of edges"
+    
+    net_List_file = os.path.abspath('Z_List.txt')
+    
+    export_List_net_from_list(net_List_file,Z_list)
+    
+    ### Z correl_mat as Louvain format
+    
+    print "saving Z_list as Louvain format"
+    
+    net_Louvain_file = os.path.abspath('Z_Louvain.txt')
+    
+    export_Louvain_net_from_list(net_Louvain_file,Z_list,coords)
+    
+    return net_List_file, net_Louvain_file
+    
     
 ################################################ Louvain method  ###########################################
 
@@ -621,6 +663,72 @@ def export_lol_mask_file(rada_lol_file,Pajek_net_file,coords_file,mask_file):
     return lol_mask_file
     
 
+def export_lol_mask_file_coords_net(rada_lol_file,Pajek_net_file,coords_net_file,mask_file):
+
+    import numpy as np
+    
+    import nibabel as nib
+    import os
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres_rel_coords,return_mod_mask_corres_rel_coords_neighbourhood,read_lol_file,read_Pajek_rel_coords,read_Pajek_corres_nodes
+
+    #print 'Loading Pajek_net_file for reading node_corres'
+    
+    #node_corres = read_Pajek_corres_nodes(Pajek_net_file)
+    
+    #print node_corres.shape
+    
+    
+    print 'Loading coords'
+    
+    node_rel_coords = read_Pajek_rel_coords(coords_net_file)
+    
+    print node_rel_coords
+    
+    print 'Loading mask parameters'
+    
+    mask = nib.load(mask_file)
+    
+    data_mask_shape = mask.get_data().shape
+    
+    mask_header = mask.get_header().copy()
+    
+    mask_affine = np.copy(mask.get_affine())
+    
+    print data_mask_shape
+    
+    print "Loading community belonging file" + rada_lol_file
+
+    community_vect = read_lol_file(rada_lol_file)
+    
+    print community_vect
+    
+    print "transforming to nii file"
+    #lol_mask_data = return_mod_mask_corres_rel_coords(community_vect,node_rel_coords,data_mask_shape[:-1])
+    lol_mask_data = return_mod_mask_corres_rel_coords_neighbourhood(community_vect,node_rel_coords,data_mask_shape[:-1])
+
+    #print lol_mask_data
+    print lol_mask_data.shape
+
+
+    #print "saving npy file"
+
+    #mod_mask_file = os.path.abspath("mod_mask_data.npy")
+
+    #np.save(mod_mask_file ,np.array(mod_mask_data,dtype = int))
+    
+    print "saving nii file"
+
+    lol_mask_file = os.path.abspath("lol_mask_data.nii")
+
+    nib.save(nib.Nifti1Image(np.array(lol_mask_data,dtype = int),mask_affine,mask_header),lol_mask_file)
+
+    #print "returning"
+
+    #lol_mask_file = ""
+    
+    return lol_mask_file
+    
+
 ############################# computation on modules 
     
     
@@ -791,10 +899,13 @@ def plot_dist_matrix(dist_mat_file):
     
         
 ########################### plot igraph #####################################""
-
     
 def plot_igraph_modules_conf_cor_mat_louvain(Louvain_mod_file,Louvain_node_file,coords_file,net_Louvain_file,gm_mask_coords_file):
 
+    """
+    Special Louvain algo
+    Needs to be modified to match with plotting for Rada results (coords and gm_coords are redondnant, etc.)
+    """
     import numpy as np
     import nibabel as nib
     import os
@@ -846,15 +957,142 @@ def plot_igraph_modules_conf_cor_mat_louvain(Louvain_mod_file,Louvain_node_file,
     
     print "plotting conf_cor_mat_modules_file with igraph"
     
-    Z_list_all_modules_file = plot_3D_igraph_modules_Z_list(community_vect,node_coords,Z_list,gm_mask_coords)
+    Z_list_all_modules_files = plot_3D_igraph_modules_Z_list(community_vect,node_coords,Z_list,gm_mask_coords)
     
-    #Z_list_all_modules_file = ''
+    #Z_list_all_modules_files = ''
     #conf_cor_mat_big_modules_file = ''
     
-    return Z_list_all_modules_file
+    return Z_list_all_modules_files
     
     
-def plot_igraph_modules_conf_cor_mat_rada(rada_lol_file,Pajek_net_file,coords_file,net_List_file,gm_mask_coords_file):
+def plot_igraph_modules_conf_cor_mat_rada(rada_lol_file,Pajek_net_file,coords_file):
+
+    import numpy as np
+    import nibabel as nib
+    import os
+    import csv
+        
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes_and_sparse_matrix
+    
+    from dmgraphanalysis.plot_igraph import plot_3D_igraph_all_modules_coomatrix_rel_coords,plot_3D_igraph_single_modules_coomatrix_rel_coords
+
+    print 'Loading node_corres and Z list'
+    
+    node_corres,Z_list = read_Pajek_corres_nodes_and_sparse_matrix(Pajek_net_file)
+    
+    print np.min(node_corres),np.max(node_corres)
+    
+    print node_corres.shape
+    
+    print Z_list.shape 
+    
+    print 'Loading coords'
+    
+    
+    #with open(coords_file, 'Ur') as f:
+        #coords_list = list(tuple(map(float,rec))[0:2] for rec in csv.reader(f, delimiter=' '))
+    
+    coords = np.array(np.loadtxt(coords_file),dtype = 'int64')
+    
+    print coords.shape
+    
+    #print 'Loading gm mask coords'
+    
+    #gm_mask_coords = np.array(np.loadtxt(gm_mask_coords_file),dtype = 'int64')
+    
+    #print gm_mask_coords.shape
+    
+    print "Loading community belonging file" + rada_lol_file
+
+    community_vect = read_lol_file(rada_lol_file)
+    
+    #print community_vect
+    print community_vect.shape
+    print np.min(community_vect),np.max(community_vect)
+    
+    print 'extracting node coords'
+    
+    node_coords = coords[node_corres,:]
+    
+    print node_coords.shape
+    
+    print "plotting conf_cor_mat_modules_file with igraph"
+    Z_list_single_modules_files = plot_3D_igraph_single_modules_coomatrix_rel_coords(community_vect,node_coords,Z_list)
+    Z_list_all_modules_files = plot_3D_igraph_all_modules_coomatrix_rel_coords(community_vect,node_coords,Z_list)
+    
+    return Z_list_single_modules_files,Z_list_all_modules_files
+    
+def plot_igraph_modules_coclass_rada(rada_lol_file,Pajek_net_file,gm_mask_coords_file,labels_file):
+    
+    import numpy as np
+    import nibabel as nib
+    import os
+    import csv
+        
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes_and_sparse_matrix,read_List_net_file
+    
+    from dmgraphanalysis.plot_igraph import plot_3D_igraph_single_modules_coomatrix_rel_coords,plot_3D_igraph_all_modules_coomatrix_rel_coords
+#    from dmgraphanalysis.plot_igraph import plot_3D_igraph_modules_net_list
+
+    print 'loading labels'
+    
+    labels = [line.strip() for line in open(labels_file)]
+    
+    
+    print 'Loading node_corres'
+    
+    node_corres,Z_list = read_Pajek_corres_nodes_and_sparse_matrix(Pajek_net_file)
+    
+    
+    #print np.min(node_corres),np.max(node_corres)
+    #print node_corres.shape
+    
+    #print Z_list.shape
+    print 'Loading gm mask coords'
+    
+    gm_mask_coords = np.array(np.loadtxt(gm_mask_coords_file),dtype = 'int64')
+    
+    #print gm_mask_coords.shape
+    
+    
+    print "Loading community belonging file" + rada_lol_file
+
+    community_vect = read_lol_file(rada_lol_file)
+    
+    #print community_vect
+    #print community_vect.shape
+    
+    print "loading net_list_net as list"
+    
+    #net_list = read_List_net_file(net_list_file)
+    
+    #print net_list
+    
+    print 'extracting node coords'
+    
+    node_coords = gm_mask_coords[node_corres,:]
+    
+    #print node_coords.shape
+    
+    np_labels = np.array(labels,dtype = 'string')
+    
+    node_labels = np_labels[node_corres,:]
+    
+    #print node_labels.shape
+    
+    #print len(labels),node_labels.shape
+    
+    
+    print "plotting Z_cor_mat_modules_file with igraph"
+    
+    coclass_single_modules_files = plot_3D_igraph_single_modules_coomatrix_rel_coords(community_vect,node_coords,Z_list,node_labels.tolist())
+    coclass_all_modules_files = plot_3D_igraph_all_modules_coomatrix_rel_coords(community_vect,node_coords,Z_list,node_labels.tolist())
+    
+    
+    return coclass_single_modules_files,coclass_all_modules_files
+    
+    
+def plot_igraph_modules_node_roles_rada(rada_lol_file,Pajek_net_file,coords_file,net_List_file,gm_mask_coords_file,node_roles_file):
 
     import numpy as np
     import nibabel as nib
@@ -863,7 +1101,7 @@ def plot_igraph_modules_conf_cor_mat_rada(rada_lol_file,Pajek_net_file,coords_fi
         
     from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes,read_List_net_file
     
-    from dmgraphanalysis.plot_igraph import plot_3D_igraph_modules_Z_list
+    from dmgraphanalysis.plot_igraph import plot_3D_igraph_modules_node_roles
 
     print 'Loading node_corres'
     
@@ -908,12 +1146,223 @@ def plot_igraph_modules_conf_cor_mat_rada(rada_lol_file,Pajek_net_file,coords_fi
     
     print node_coords.shape
     
+    print "reading node roles"
+    
+    node_roles = np.array(np.loadtxt(node_roles_file),dtype = 'int64')
+    
+    print node_roles
+    
+    
+    
+    
     print "plotting conf_cor_mat_modules_file with igraph"
     
-    Z_list_all_modules_file = plot_3D_igraph_modules_Z_list(community_vect,node_coords,Z_list,gm_mask_coords)
+    plot_igraph_node_roles_file = plot_3D_igraph_modules_node_roles(community_vect,node_coords,Z_list,gm_mask_coords,node_roles)
+    
+    return plot_igraph_node_roles_file
+    
+def plot_igraph_modules_coclass_rada_forced_colors(rada_lol_file,Pajek_net_file,gm_mask_coords_file,labels_file,rois_orig_indexes_file):
+    
+    import numpy as np
+    import nibabel as nib
+    import os
+    import csv
+        
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes_and_sparse_matrix,read_List_net_file,force_order
+    from dmgraphanalysis.plot_igraph import plot_3D_igraph_single_modules_coomatrix_rel_coords,plot_3D_igraph_all_modules_coomatrix_rel_coords
+#    from dmgraphanalysis.plot_igraph import plot_3D_igraph_modules_net_list
+
+    print 'loading labels'
+    
+    labels = [line.strip() for line in open(labels_file)]
+    
+    print 'loading rois_orig_indexes_file'
+    
+    rois_orig_indexes = np.array(np.loadtxt(rois_orig_indexes_file),dtype = int)
+    
+    print rois_orig_indexes.shape
+    
+    print 'Loading node_corres'
+    
+    node_corres,Z_list = read_Pajek_corres_nodes_and_sparse_matrix(Pajek_net_file)
     
     
-    return Z_list_all_modules_file
+    #print np.min(node_corres),np.max(node_corres)
+    #print node_corres.shape
+    
+    #print Z_list.shape
+    print 'Loading gm mask coords'
+    
+    gm_mask_coords = np.array(np.loadtxt(gm_mask_coords_file),dtype = 'int64')
+    
+    #print gm_mask_coords.shape
+    
+    
+    print "Loading community belonging file" + rada_lol_file
+
+    community_vect = read_lol_file(rada_lol_file)
+    
+    #print community_vect
+    print community_vect.shape
+    
+    print "loading net_list_net as list"
+    
+    #net_list = read_List_net_file(net_list_file)
+    
+    #print net_list
+    
+    print 'extracting node coords'
+    
+    node_coords = gm_mask_coords[node_corres,:]
+    
+    print 'extracting node orig_indexes'
+    
+    node_orig_indexes = rois_orig_indexes[node_corres,:]
+    
+    print node_orig_indexes
+    
+    reordered_community_vect = force_order(community_vect,node_orig_indexes)
+    
+    print reordered_community_vect.shape
+        
+    np_labels = np.array(labels,dtype = 'string')
+    
+    node_labels = np_labels[node_corres,:]
+    
+    #print node_labels.shape
+    
+    #print len(labels),node_labels.shape
+    
+    
+    print "plotting Z_cor_mat_modules_file with igraph"
+    
+    coclass_single_modules_files = plot_3D_igraph_single_modules_coomatrix_rel_coords(reordered_community_vect,node_coords,Z_list,node_labels.tolist())
+    coclass_all_modules_files = plot_3D_igraph_all_modules_coomatrix_rel_coords(reordered_community_vect,node_coords,Z_list,node_labels.tolist())
+    
+    return coclass_single_modules_files,coclass_all_modules_files
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    #### special RS-monkey, where coords are forced in Pajek file, and used to place nodes on plot
+def plot_igraph_modules_read_pajek_rel_coords_rada(rada_lol_file,Pajek_net_file,coords_net_file):
+
+    import numpy as np
+    import nibabel as nib
+    import os
+    import csv
+        
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes_and_sparse_matrix,read_Pajek_rel_coords
+    
+    from dmgraphanalysis.plot_igraph import plot_3D_igraph_single_modules_coomatrix_rel_coords,plot_3D_igraph_all_modules_coomatrix_rel_coords
+
+    print 'Loading node_corres and Z list'
+    
+    node_corres,Z_list = read_Pajek_corres_nodes_and_sparse_matrix(Pajek_net_file)
+    
+    print np.min(node_corres),np.max(node_corres)
+    
+    print node_corres.shape
+    
+    #print Z_list 
+    #print Z_list.shape 
+    
+    print 'Loading coords'
+    
+    node_rel_coords = read_Pajek_rel_coords(coords_net_file)
+    
+    print node_rel_coords
+    
+    print "Loading community belonging file" + rada_lol_file
+
+    community_vect = read_lol_file(rada_lol_file)
+    
+    #print community_vect
+    print community_vect.shape
+    print np.min(community_vect),np.max(community_vect)
+    
+    print "plotting conf_cor_mat_modules_file with igraph"
+    
+    Z_list_single_modules_files = plot_3D_igraph_single_modules_coomatrix_rel_coords(community_vect,node_rel_coords,Z_list)
+    Z_list_all_modules_files = plot_3D_igraph_all_modules_coomatrix_rel_coords(community_vect,node_rel_coords,Z_list)
+    
+    return Z_list_single_modules_files,Z_list_all_modules_files
+    
+    
+    
+    
+def plot_igraph_modules_read_pajek_rel_coords_node_roles_rada(rada_lol_file,Pajek_net_file,coords_net_file,node_roles_file):
+
+    import numpy as np
+    import nibabel as nib
+    import os
+    import csv
+        
+    from dmgraphanalysis.utils_cor import return_mod_mask_corres,read_lol_file,read_Pajek_corres_nodes_and_sparse_matrix,read_Pajek_rel_coords
+    
+    from dmgraphanalysis.plot_igraph import plot_3D_igraph_all_modules_coomatrix_rel_coords_node_roles,plot_3D_igraph_single_modules_coomatrix_rel_coords_node_roles
+
+    print 'Loading node_corres and Z list'
+    
+    node_corres,Z_list = read_Pajek_corres_nodes_and_sparse_matrix(Pajek_net_file)
+    
+    print np.min(node_corres),np.max(node_corres)
+    
+    print node_corres.shape
+    
+    #print Z_list 
+    #print Z_list.shape 
+    
+    print 'Loading coords'
+    
+    node_rel_coords = read_Pajek_rel_coords(coords_net_file)
+    
+    print node_rel_coords
+    
+    print "Loading community belonging file" + rada_lol_file
+
+    community_vect = read_lol_file(rada_lol_file)
+    
+    #print community_vect
+    print community_vect.shape
+    print np.min(community_vect),np.max(community_vect)
+    
+    
+    print "Loading node roles"
+    
+    node_roles = np.array(np.loadtxt(node_roles_file),dtype = 'int64')
+    
+    print node_roles
+    
+    print "plotting conf_cor_mat_modules_file with igraph"
+    
+    node_roles_all_modules_files = plot_3D_igraph_all_modules_coomatrix_rel_coords_node_roles(community_vect,node_rel_coords,Z_list,node_roles)
+    
+    node_roles_single_modules_files = plot_3D_igraph_single_modules_coomatrix_rel_coords_node_roles(community_vect,node_rel_coords,Z_list,node_roles)
+    
+    return node_roles_single_modules_files,node_roles_all_modules_files
+    
     
     
 def plot_igraph_matrix(mod_cor_mat_file,mod_average_coords_file):
@@ -946,4 +1395,50 @@ def plot_igraph_matrix(mod_cor_mat_file,mod_average_coords_file):
     i_graph_file = plot_3D_igraph_weighted_signed_matrix(mod_cor_mat,mod_average_coords)
     
     return i_graph_file
+    
+################################################################ Node roles 
+
+def compute_node_role_rada(rada_lol_file,Pajek_net_file):
+
+    import numpy as np
+    
+    import nibabel as nib
+    import os
+    from dmgraphanalysis.utils_cor import read_lol_file,read_Pajek_corres_nodes_and_sparse_matrix,compute_roles
+
+    print 'Loading Pajek_net_file for reading node_corres'
+    
+    node_corres,sparse_mat = read_Pajek_corres_nodes_and_sparse_matrix(Pajek_net_file)
+    
+    print sparse_mat.todense()
+    
+    print node_corres.shape,sparse_mat.todense().shape
+    
+    print "Loading community belonging file " + rada_lol_file
+
+    community_vect = read_lol_file(rada_lol_file)
+    
+    print community_vect
+    
+    print "Computing node roles"
+    node_roles,all_Z_com_degree,all_participation_coeff = compute_roles(community_vect,sparse_mat)
+    
+    print node_roles
+    
+    
+    node_roles_file = os.path.abspath('node_roles.txt')
+    
+    np.savetxt(node_roles_file,node_roles,fmt = '%d')
+    
+    
+    all_Z_com_degree_file = os.path.abspath('all_Z_com_degree.txt')
+    
+    np.savetxt(all_Z_com_degree_file,all_Z_com_degree,fmt = '%f')
+    
+    
+    all_participation_coeff_file = os.path.abspath('all_participation_coeff.txt')
+    
+    np.savetxt(all_participation_coeff_file,all_participation_coeff,fmt = '%f')
+    
+    return node_roles_file,all_Z_com_degree_file,all_participation_coeff_file
     
