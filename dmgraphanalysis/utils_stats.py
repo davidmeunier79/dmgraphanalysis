@@ -29,146 +29,160 @@ def info_CI(X,Y):
     ###################################################################################### pairwise/nodewise stats ###########################################################################################################
     
     
-def return_signif_bin_vect(p_values,fdr_alpha = 0.05):
+def return_signif_code(p_values,uncor_alpha = 0.05,fdr_alpha = 0.05,bon_alpha = 0.05):
 
     print p_values
     
-    
     N = p_values.shape[0]
-    
-    
     
     order =  p_values.argsort()
     
-    init_order = range(N)
-    
-    
-    print order
+    #print order
     
     sorted_p_values= p_values[order]
     
-    print sorted_p_values
+    #print sorted_p_values
     
     ### by default, code = 1 (cor at 0.05)
-    sorted_order = np.ones(shape = N)
+    signif_code = np.ones(shape = N)
     
     ################ uncor #############################
+    ### code = 0 for all correlation below uncor_alpha
+    signif_code[p_values > uncor_alpha] = 0
     
-    sorted_order[p_values > fdr_alpha] = 0
+    ################ FPcor #############################
+    
+    signif_code[p_values < 1.0/N] = 2
     
     ################ fdr ###############################
     seq = np.arange(N,0,-1)
     
     seq_fdr_p_values = fdr_alpha/seq
     
-    print seq_fdr_p_values
+    #print seq_fdr_p_values
     
-    sorted_order[sorted_p_values < seq_fdr_p_values] = 2
+    signif_sorted = sorted_p_values < seq_fdr_p_values
+    
+    signif_code[order[signif_sorted]] = 3
     
     ################# bonferroni #######################
     
-    sorted_order[sorted_p_values < fdr_alpha/N] = 4
+    signif_code[p_values < bon_alpha/N] = 4
     
-    return sorted_order
+    return signif_code
     
-def return_signif_pval_vect(sort_np_list_diff,t_test_thresh_fdr):
+#def return_signif_pval_vect(sort_np_list_diff,t_test_thresh_fdr):
 
-    n = sort_np_list_diff.shape[0]
+    #n = sort_np_list_diff.shape[0]
     
-    ############### uncor #############################
+    ################ uncor #############################
     
-    sort_np_list_diff[sort_np_list_diff[:,1] > t_test_thresh_fdr,2] = 0
+    #sort_np_list_diff[sort_np_list_diff[:,1] > t_test_thresh_fdr,2] = 0
     
-    ############### fdr ###############################
-    seq = np.arange(n,0,-1)
+    ################ fdr ###############################
+    #seq = np.arange(n,0,-1)
+    
+    ##print seq
+    
+    #seq_fdr_p_values = t_test_thresh_fdr/seq
+    
+    #sort_np_list_diff[sort_np_list_diff[:,1] < seq_fdr_p_values,2] = sort_np_list_diff[sort_np_list_diff[:,1] < seq_fdr_p_values,2] * 2
+    
+    ################# bonferroni #######################
+    
+    #sort_np_list_diff[sort_np_list_diff[:,1] < t_test_thresh_fdr/n,2] = sort_np_list_diff[sort_np_list_diff[:,1] < t_test_thresh_fdr/n,2] * 2
+    
+    #return sort_np_list_diff
+    
+    
+#def return_signif_pval_mat(np_list_diff,t_test_thresh_fdr):
+
+    #print np_list_diff.shape
+    
+    #order =  np_list_diff[:,2].argsort()
+    
+    #print order
+    
+    #sort_np_list_diff = np_list_diff[order]
+    
+    #print sort_np_list_diff
+    #print sort_np_list_diff.shape[0]
+    
+    #n = np_list_diff.shape[0]
+    
+    ################ uncor #############################
+    
+    #sort_np_list_diff[sort_np_list_diff[:,2] > 0.001,3] = 0
+    
+    ################ fdr ###############################
+    #seq = np.arange(n,0,-1)
+    
+    ##print seq
+    
+    #seq_fdr_p_values = t_test_thresh_fdr/seq
+    
+    #print sort_np_list_diff[:,2] 
+    #print seq_fdr_p_values
+    
+    #sort_np_list_diff[sort_np_list_diff[:,2] < seq_fdr_p_values,3] = sort_np_list_diff[sort_np_list_diff[:,2] < seq_fdr_p_values,3] * 2
+    
+    ################# bonferroni #######################
+    
+    #sort_np_list_diff[sort_np_list_diff[:,2] < t_test_thresh_fdr/n,3] = sort_np_list_diff[sort_np_list_diff[:,2] < t_test_thresh_fdr/n,3] * 2
+    
+    #return sort_np_list_diff
+    
+    
+    
+    
+    
+#def return_signif_binom_mat(sort_np_list_diff,conf_interval_binom_fdr):
+
+    #n = sort_np_list_diff.shape[0]
+    
+    ############# uncor
+    
+    #uncor_Z_val = stat.norm.ppf(1-conf_interval_binom_fdr/2)
+    
+    #uncor_norm = uncor_Z_val * sort_np_list_diff[:,3]
+    
+    #sort_np_list_diff[sort_np_list_diff[:,2] < uncor_norm,4] = 0
+    
+    ############# fdr
+    
+    #seq = np.arange(n,0,-1)
     
     #print seq
     
-    seq_fdr_p_values = t_test_thresh_fdr/seq
+    #seq_fdr_p_values = conf_interval_binom_fdr/seq
     
-    sort_np_list_diff[sort_np_list_diff[:,1] < seq_fdr_p_values,2] = sort_np_list_diff[sort_np_list_diff[:,1] < seq_fdr_p_values,2] * 2
+    #print seq_fdr_p_values
+    ##seq_fdr_p_values
     
-    ################ bonferroni #######################
+    #seq_Z_val = stat.norm.ppf(1-seq_fdr_p_values/2)
     
-    sort_np_list_diff[sort_np_list_diff[:,1] < t_test_thresh_fdr/n,2] = sort_np_list_diff[sort_np_list_diff[:,1] < t_test_thresh_fdr/n,2] * 2
-    
-    return sort_np_list_diff
-    
-    
-def return_signif_pval_mat(sort_np_list_diff,t_test_thresh_fdr):
-
-    n = sort_np_list_diff.shape[0]
-    
-    ############### uncor #############################
-    
-    sort_np_list_diff[sort_np_list_diff[:,2] > t_test_thresh_fdr,3] = 0
-    
-    ############### fdr ###############################
-    seq = np.arange(n,0,-1)
-    
-    #print seq
-    
-    seq_fdr_p_values = t_test_thresh_fdr/seq
-    
-    sort_np_list_diff[sort_np_list_diff[:,2] < seq_fdr_p_values,3] = sort_np_list_diff[sort_np_list_diff[:,2] < seq_fdr_p_values,3] * 2
-    
-    ################ bonferroni #######################
-    
-    sort_np_list_diff[sort_np_list_diff[:,2] < t_test_thresh_fdr/n,3] = sort_np_list_diff[sort_np_list_diff[:,2] < t_test_thresh_fdr/n,3] * 2
-    
-    return sort_np_list_diff
+    #print 
     
     
+    #print seq_Z_val
     
+    #seq_norm =  seq_Z_val * sort_np_list_diff[:,3]
     
+    #print seq_norm
     
-def return_signif_binom_mat(sort_np_list_diff,conf_interval_binom_fdr):
-
-    n = sort_np_list_diff.shape[0]
+    #print np.sum(np.array(sort_np_list_diff[:,2] > seq_norm,dtype = 'int'))
     
-    ############ uncor
+    #sort_np_list_diff[sort_np_list_diff[:,2] > seq_norm,4] = sort_np_list_diff[sort_np_list_diff[:,2] > seq_norm,4] * 2
     
-    uncor_Z_val = stat.norm.ppf(1-conf_interval_binom_fdr/2)
+    ################## bonferroni
     
-    uncor_norm = uncor_Z_val * sort_np_list_diff[:,3]
+    #bon_Z_val = stat.norm.ppf(1-conf_interval_binom_fdr/(2*n))
     
-    sort_np_list_diff[sort_np_list_diff[:,2] < uncor_norm,4] = 0
+    #bon_norm = bon_Z_val * sort_np_list_diff[:,3]
     
-    ############ fdr
+    #sort_np_list_diff[sort_np_list_diff[:,2] > bon_norm,4] = sort_np_list_diff[sort_np_list_diff[:,2] > bon_norm,4] * 2
     
-    seq = np.arange(n,0,-1)
-    
-    print seq
-    
-    seq_fdr_p_values = conf_interval_binom_fdr/seq
-    
-    print seq_fdr_p_values
-    #seq_fdr_p_values
-    
-    seq_Z_val = stat.norm.ppf(1-seq_fdr_p_values/2)
-    
-    print 
-    
-    
-    print seq_Z_val
-    
-    seq_norm =  seq_Z_val * sort_np_list_diff[:,3]
-    
-    print seq_norm
-    
-    print np.sum(np.array(sort_np_list_diff[:,2] > seq_norm,dtype = 'int'))
-    
-    sort_np_list_diff[sort_np_list_diff[:,2] > seq_norm,4] = sort_np_list_diff[sort_np_list_diff[:,2] > seq_norm,4] * 2
-    
-    ################# bonferroni
-    
-    bon_Z_val = stat.norm.ppf(1-conf_interval_binom_fdr/(2*n))
-    
-    bon_norm = bon_Z_val * sort_np_list_diff[:,3]
-    
-    sort_np_list_diff[sort_np_list_diff[:,2] > bon_norm,4] = sort_np_list_diff[sort_np_list_diff[:,2] > bon_norm,4] * 2
-    
-    return sort_np_list_diff
+    #return sort_np_list_diff
     
     
     
@@ -258,7 +272,7 @@ def compute_pairwise_ttest_fdr(X,Y,t_test_thresh_fdr):
         
         t_stat,p_val = stat.ttest_ind(X[i,j,:],Y[i,j,:])
         
-        print t_stat,p_val
+        #print t_stat,p_val
         
         list_diff.append([i,j,p_val,np.sign(np.mean(X[i,j,:])-np.mean(Y[i,j,:]))])
         
@@ -266,32 +280,25 @@ def compute_pairwise_ttest_fdr(X,Y,t_test_thresh_fdr):
         
     np_list_diff = np.array(list_diff)
    
-    print np_list_diff
+    signif_code = return_signif_code(np_list_diff[:,2],uncor_alpha = 0.001,fdr_alpha = t_test_thresh_fdr, bon_alpha = 0.05)
     
-    print np_list_diff
+    print np.sum(signif_code == 0.0),np.sum(signif_code == 1.0),np.sum(signif_code == 2.0),np.sum(signif_code == 3.0),np.sum(signif_code == 4.0)
     
-    order =  np_list_diff[:,2].argsort()
+    np_list_diff[:,3] = np_list_diff[:,3] * signif_code
     
-    print order
-    
-    sort_np_list_diff = np_list_diff[order[::-1]]
-    
-    print sort_np_list_diff.shape[0]
-    
-    signif_fdr = return_signif_pval_mat(sort_np_list_diff,t_test_thresh_fdr)
-    
-    #print signif_fdr
+    print np.sum(np_list_diff[:,3] == 0.0)
+    print np.sum(np_list_diff[:,3] == 1.0),np.sum(np_list_diff[:,3] == 2.0),np.sum(np_list_diff[:,3] == 3.0),np.sum(np_list_diff[:,3] == 4.0)
+    print np.sum(np_list_diff[:,3] == -1.0),np.sum(np_list_diff[:,3] == -2.0),np.sum(np_list_diff[:,3] == -3.0),np.sum(np_list_diff[:,3] == -4.0)
     
     
-    print np.sum(signif_fdr[:,3] == 0.0),np.sum(signif_fdr[:,3] == 1.0),np.sum(signif_fdr[:,3] == 2.0),np.sum(signif_fdr[:,3] == 4.0),np.sum(signif_fdr[:,3] == -1.0),np.sum(signif_fdr[:,3] == -2.0),np.sum(signif_fdr[:,3] == -4.0)
+    
     
     signif_signed_adj_mat = np.zeros((N,N),dtype = 'int')
     
-        
-    signif_i = np.array(signif_fdr[:,0],dtype = int)
-    signif_j = np.array(signif_fdr[:,1],dtype = int)
+    signif_i = np.array(np_list_diff[:,0],dtype = int)
+    signif_j = np.array(np_list_diff[:,1],dtype = int)
     
-    signif_sign = np.array(signif_fdr[:,3],dtype = int)
+    signif_sign = np.array(np_list_diff[:,3],dtype = int)
     
     print signif_i,signif_j
     
@@ -308,58 +315,50 @@ def compute_pairwise_ttest_fdr(X,Y,t_test_thresh_fdr):
     return signif_signed_adj_mat
 
     
-def compute_pairwise_binom_fdr(X,Y,conf_interval_binom_fdr):
-
+def compute_pairwise_ttest_rel_fdr(X,Y,t_test_thresh_fdr):
+    
     # number of nodes
     N = X.shape[0]
    
-    # Perform binomial test at each edge
-    
-    
     list_diff = []
     
     for i,j in it.combinations(range(N), 2):
         
-        abs_diff,SE,sign_diff = info_CI(X[i,j,:],Y[i,j,:])
-         
-        list_diff.append([i,j,abs_diff,SE,sign_diff])
+        #t_stat_zalewski = ttest2(X[i,j,:],Y[i,j,:])
         
-    print list_diff
-    
+        t_stat,p_val = stat.ttest_rel(X[i,j,:],Y[i,j,:])
+        
+        #print t_stat,p_val
+        
+        list_diff.append([i,j,p_val,np.sign(np.mean(X[i,j,:])-np.mean(Y[i,j,:]))])
+        
+    #print list_diff
+        
     np_list_diff = np.array(list_diff)
+   
+    signif_code = return_signif_code(np_list_diff[:,2],uncor_alpha = 0.001,fdr_alpha = t_test_thresh_fdr, bon_alpha = 0.05)
+    
+    print np.sum(signif_code == 0.0),np.sum(signif_code == 1.0),np.sum(signif_code == 2.0),np.sum(signif_code == 3.0),np.sum(signif_code == 4.0)
+    
+    np_list_diff[:,3] = np_list_diff[:,3] * signif_code
+    
+    print np.sum(np_list_diff[:,3] == 0.0)
+    print np.sum(np_list_diff[:,3] == 1.0),np.sum(np_list_diff[:,3] == 2.0),np.sum(np_list_diff[:,3] == 3.0),np.sum(np_list_diff[:,3] == 4.0)
+    print np.sum(np_list_diff[:,3] == -1.0),np.sum(np_list_diff[:,3] == -2.0),np.sum(np_list_diff[:,3] == -3.0),np.sum(np_list_diff[:,3] == -4.0)
     
     
-    print np_list_diff
-    
-    order =  np_list_diff[:,2].argsort()
-    
-    print order
-    
-    sort_np_list_diff = np_list_diff[order[::-1]]
     
     
-    print sort_np_list_diff
-    
-    print sort_np_list_diff.shape[0]
-    
-    signif_fdr = return_signif_binom_mat(sort_np_list_diff,conf_interval_binom_fdr)
-    
-    
-    print np.sum(signif_fdr[:,4] == 0.0),np.sum(signif_fdr[:,4] == 1.0),np.sum(signif_fdr[:,4] == 2.0),np.sum(signif_fdr[:,4] == 4.0),np.sum(signif_fdr[:,4] == -1.0),np.sum(signif_fdr[:,4] == -2.0),np.sum(signif_fdr[:,4] == -4.0)
-    
-        
     signif_signed_adj_mat = np.zeros((N,N),dtype = 'int')
     
-    #signif_indexes = np.array(signif_fdr[:,0:2],dtype = int)
+    signif_i = np.array(np_list_diff[:,0],dtype = int)
+    signif_j = np.array(np_list_diff[:,1],dtype = int)
     
-    signif_i = np.array(signif_fdr[:,0],dtype = int)
-    signif_j = np.array(signif_fdr[:,1],dtype = int)
+    signif_sign = np.array(np_list_diff[:,3],dtype = int)
     
-    signif_sign = np.array(signif_fdr[:,4],dtype = int)
+    #print signif_i,signif_j
     
-    print signif_i,signif_j
-    
-    print signif_signed_adj_mat[signif_i,signif_j] 
+    #print signif_signed_adj_mat[signif_i,signif_j] 
     
     #print signif_sign
     
@@ -367,13 +366,76 @@ def compute_pairwise_binom_fdr(X,Y,conf_interval_binom_fdr):
     
     signif_signed_adj_mat[signif_i,signif_j] = signif_signed_adj_mat[signif_j,signif_i] = signif_sign
     
-    
-    print signif_signed_adj_mat
-    #signif_pos_mat_indexes = signif_fdr[signif_fdr[:,4] == 1,0:2]
-    
-    #print signif_pos_mat_indexes
+    #print signif_signed_adj_mat
     
     return signif_signed_adj_mat
+
+#def compute_pairwise_binom_fdr(X,Y,conf_interval_binom_fdr):
+
+    ## number of nodes
+    #N = X.shape[0]
+   
+    ## Perform binomial test at each edge
+    
+    
+    #list_diff = []
+    
+    #for i,j in it.combinations(range(N), 2):
+        
+        #abs_diff,SE,sign_diff = info_CI(X[i,j,:],Y[i,j,:])
+         
+        #list_diff.append([i,j,abs_diff,SE,sign_diff])
+        
+    #print list_diff
+    
+    #np_list_diff = np.array(list_diff)
+    
+    
+    #print np_list_diff
+    
+    #order =  np_list_diff[:,2].argsort()
+    
+    #print order
+    
+    #sort_np_list_diff = np_list_diff[order[::-1]]
+    
+    
+    #print sort_np_list_diff
+    
+    #print sort_np_list_diff.shape[0]
+    
+    #signif_fdr = return_signif_binom_mat(sort_np_list_diff,conf_interval_binom_fdr)
+    
+    
+    #print np.sum(signif_fdr[:,4] == 0.0),np.sum(signif_fdr[:,4] == 1.0),np.sum(signif_fdr[:,4] == 2.0),np.sum(signif_fdr[:,4] == 4.0),np.sum(signif_fdr[:,4] == -1.0),np.sum(signif_fdr[:,4] == -2.0),np.sum(signif_fdr[:,4] == -4.0)
+    
+        
+    #signif_signed_adj_mat = np.zeros((N,N),dtype = 'int')
+    
+    ##signif_indexes = np.array(signif_fdr[:,0:2],dtype = int)
+    
+    #signif_i = np.array(signif_fdr[:,0],dtype = int)
+    #signif_j = np.array(signif_fdr[:,1],dtype = int)
+    
+    #signif_sign = np.array(signif_fdr[:,4],dtype = int)
+    
+    #print signif_i,signif_j
+    
+    #print signif_signed_adj_mat[signif_i,signif_j] 
+    
+    ##print signif_sign
+    
+    
+    
+    #signif_signed_adj_mat[signif_i,signif_j] = signif_signed_adj_mat[signif_j,signif_i] = signif_sign
+    
+    
+    #print signif_signed_adj_mat
+    ##signif_pos_mat_indexes = signif_fdr[signif_fdr[:,4] == 1,0:2]
+    
+    ##print signif_pos_mat_indexes
+    
+    #return signif_signed_adj_mat
 
 #def compute_nodewise_t_values(X,Y):
 
@@ -390,47 +452,47 @@ def compute_pairwise_binom_fdr(X,Y,conf_interval_binom_fdr):
     #return t_val_vect
 
     
-def compute_nodewise_t_values_fdr(X,Y,t_test_thresh_fdr):
+#def compute_nodewise_t_values_fdr(X,Y,t_test_thresh_fdr):
 
-    # number of nodes
-    N = X.shape[0]
+    ## number of nodes
+    #N = X.shape[0]
    
-    list_diff = []
+    #list_diff = []
     
-    for i in range(N):
+    #for i in range(N):
         
-        #t_stat_zalewski = ttest2(X[i,:],Y[i,:])
+        ##t_stat_zalewski = ttest2(X[i,:],Y[i,:])
         
-        t_stat,p_val = stat.ttest_ind(X[i,:],Y[i,:])
+        #t_stat,p_val = stat.ttest_ind(X[i,:],Y[i,:])
         
-        print t_stat,p_val
+        #print t_stat,p_val
         
-        list_diff.append([i,p_val,np.sign(np.mean(X[i,:])-np.mean(Y[i,:]))])
+        #list_diff.append([i,p_val,np.sign(np.mean(X[i,:])-np.mean(Y[i,:]))])
         
-    #print list_diff
+    ##print list_diff
         
-    np_list_diff = np.array(list_diff)
+    #np_list_diff = np.array(list_diff)
    
-    print np_list_diff
+    #print np_list_diff
     
-    sort_np_list_diff = np_list_diff[np_list_diff[:,1].argsort()]
+    #sort_np_list_diff = np_list_diff[np_list_diff[:,1].argsort()]
     
-    print sort_np_list_diff.shape[0]
+    #print sort_np_list_diff.shape[0]
     
-    signif_fdr = return_signif_pval_vect(sort_np_list_diff,t_test_thresh_fdr)
+    #signif_fdr = return_signif_pval_vect(sort_np_list_diff,t_test_thresh_fdr)
     
-    #print signif_fdr
+    ##print signif_fdr
     
     
-    print np.sum(signif_fdr[:,2] == 0.0),np.sum(signif_fdr[:,2] == 1.0),np.sum(signif_fdr[:,2] == 2.0),np.sum(signif_fdr[:,2] == 4.0),np.sum(signif_fdr[:,2] == -1.0),np.sum(signif_fdr[:,2] == -2.0),np.sum(signif_fdr[:,2] == -4.0)
+    #print np.sum(signif_fdr[:,2] == 0.0),np.sum(signif_fdr[:,2] == 1.0),np.sum(signif_fdr[:,2] == 2.0),np.sum(signif_fdr[:,2] == 4.0),np.sum(signif_fdr[:,2] == -1.0),np.sum(signif_fdr[:,2] == -2.0),np.sum(signif_fdr[:,2] == -4.0)
             
-    signif_signed_vect = np.zeros((N),dtype = 'int')
+    #signif_signed_vect = np.zeros((N),dtype = 'int')
     
-    signif_signed_vect[np.array(signif_fdr[:,0],dtype = int)] = np.array(signif_fdr[:,2],dtype = int)
+    #signif_signed_vect[np.array(signif_fdr[:,0],dtype = int)] = np.array(signif_fdr[:,2],dtype = int)
     
-    print signif_signed_vect
+    #print signif_signed_vect
     
-    return signif_signed_vect
+    #return signif_signed_vect
 
     
     
@@ -514,30 +576,27 @@ def compute_pairwise_correl_fdr(X,behav_score,correl_thresh_fdr):
         
     np_list_diff = np.array(list_diff)
    
-    #print np_list_diff
+   
+    np_list_diff = np.array(list_diff)
+   
+    signif_code = return_signif_code(np_list_diff[:,2],uncor_alpha = 0.001,fdr_alpha = correl_thresh_fdr, bon_alpha = 0.05)
     
-    order =  np_list_diff[:,2].argsort()
+    print np.sum(signif_code == 0.0),np.sum(signif_code == 1.0),np.sum(signif_code == 2.0),np.sum(signif_code == 3.0),np.sum(signif_code == 4.0)
     
-    #print order
+    np_list_diff[:,3] = np_list_diff[:,3] * signif_code
     
-    sort_np_list_diff = np_list_diff[order[::-1]]
+    print np.sum(np_list_diff[:,3] == 0.0)
+    print np.sum(np_list_diff[:,3] == 1.0),np.sum(np_list_diff[:,3] == 2.0),np.sum(np_list_diff[:,3] == 3.0),np.sum(np_list_diff[:,3] == 4.0)
+    print np.sum(np_list_diff[:,3] == -1.0),np.sum(np_list_diff[:,3] == -2.0),np.sum(np_list_diff[:,3] == -3.0),np.sum(np_list_diff[:,3] == -4.0)
     
-    #print sort_np_list_diff.shape[0]
-    
-    signif_fdr = return_signif_pval_mat(sort_np_list_diff,correl_thresh_fdr)
-    
-    #print signif_fdr
-    
-    
-    print np.sum(signif_fdr[:,3] == 0.0),np.sum(signif_fdr[:,3] == 1.0),np.sum(signif_fdr[:,3] == 2.0),np.sum(signif_fdr[:,3] == 4.0),np.sum(signif_fdr[:,3] == -1.0),np.sum(signif_fdr[:,3] == -2.0),np.sum(signif_fdr[:,3] == -4.0)
     
     signif_signed_adj_mat = np.zeros((N,N),dtype = 'int')
     
         
-    signif_i = np.array(signif_fdr[:,0],dtype = int)
-    signif_j = np.array(signif_fdr[:,1],dtype = int)
+    signif_i = np.array(np_list_diff[:,0],dtype = int)
+    signif_j = np.array(np_list_diff[:,1],dtype = int)
     
-    signif_sign = np.array(signif_fdr[:,3],dtype = int)
+    signif_sign = np.array(np_list_diff[:,3],dtype = int)
     
     print signif_i,signif_j
     
