@@ -23,14 +23,6 @@ import itertools as iter
     
 import scipy.spatial.distance as dist
     
-### test dimensions 
-def check_dimensions(indexes,shape):
-
-    if indexes[0] >= 0 and indexes[0] < shape[0] and indexes[1] >= 0 and indexes[1] < shape[1] and indexes[2] >= 0 and indexes[2] < shape[2] :
-        return True
-    else: 
-        return False
-        
 ########################################### extract time series ################################################
 
 def return_ts(orig_ts,peak_position):
