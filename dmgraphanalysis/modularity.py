@@ -1242,29 +1242,6 @@ def plot_igraph_modules_coclass_rada_forced_colors(rada_lol_file,Pajek_net_file,
     return coclass_single_modules_files,coclass_all_modules_files
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     #### special RS-monkey, where coords are forced in Pajek file, and used to place nodes on plot
 def plot_igraph_modules_read_pajek_rel_coords_rada(rada_lol_file,Pajek_net_file,coords_net_file):
 
@@ -1359,7 +1336,7 @@ def plot_igraph_modules_read_pajek_rel_coords_node_roles_rada(rada_lol_file,Paje
     
     node_roles_all_modules_files = plot_3D_igraph_all_modules_coomatrix_rel_coords_node_roles(community_vect,node_rel_coords,Z_list,node_roles)
     
-    node_roles_single_modules_files = plot_3D_igraph_single_modules_coomatrix_rel_coords_node_roles(community_vect,node_rel_coords,Z_list,node_roles)
+    node_roles_single_modules_files = plot_3D_igraph_single_modules_coomatrix_rel_coords_node_roles(community_vect,node_rel_coords,Z_list,node_roles,nb_min_nodes_by_module = 5)
     
     return node_roles_single_modules_files,node_roles_all_modules_files
     

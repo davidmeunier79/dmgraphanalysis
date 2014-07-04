@@ -1362,6 +1362,21 @@ def int_tohex(r,g,b):
     return "#" + hexchars[int(r / 16)] + hexchars[int(r % 16)] + hexchars[int(g / 16)] + hexchars[int(g % 16)] + hexchars[int(b / 16)] + hexchars[int(b % 16)]
      
      
+def hex_to_rgb(value):
+    value = value.lstrip('#')
+    lv = len(value)
+    return tuple(int(value[i:i+lv/3], 16) for i in range(0, lv, lv/3))
+
+def hex_to_fracrgb(value):
+    value = value.lstrip('#')
+    lv = len(value)
+    return tuple(float(int(value[i:i+lv/3], 16))/255.0 for i in range(0, lv, lv/3))
+
+def hex_to_fracrgba(value,alpha = 1.0):
+    value = value.lstrip('#')
+    lv = len(value)
+    return tuple([float(int(value[i:i+lv/3], 16))/255.0 for i in range(0, lv, lv/3)] + [alpha])
+
 def generate_RGB_colors(nb_colors):
 
     import colorsys
@@ -1695,11 +1710,21 @@ def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels
     g= ig.Graph.Weighted_Adjacency(mod_list,mode=ig.ADJ_MAX)
     
     
+    null_degree_index, = np.where(np.array(g.degree()) == 0)
+    
+    print null_degree_index
+    
+    np_labels = np.array(labels,dtype = 'string')
+    
+    np_labels[null_degree_index] = ""
+    
+    print np_labels
+    
     if len(labels) == len(g.vs):
     
-        g.vs['label'] = labels
+        g.vs['label'] = np_labels.tolist()
         
-        g.vs['label_size'] = 5
+        g.vs['label_size'] = 15
     
     
     vertex_degree = np.array(g.degree())*0.2
@@ -1817,11 +1842,23 @@ def plot_igraph_3D_signed_bin_label_mat(int_matrix,coords,plot_nbs_adj_mat_file,
     
     print len(labels),len(g.vs)
     
+    print g.degree()
+    
+    null_degree_index, = np.where(np.array(g.degree()) == 0)
+    
+    print null_degree_index
+    
+    np_labels = np.array(labels,dtype = 'string')
+    
+    np_labels[null_degree_index] = ""
+    
+    print np_labels
+    
     if len(labels) == len(g.vs):
     
-        g.vs['label'] = labels
+        g.vs['label'] = np_labels.tolist()
         
-        g.vs['label_size'] = 5
+        g.vs['label_size'] = 15
     
     print len(g.es)
     
@@ -1843,12 +1880,17 @@ def plot_igraph_3D_signed_bin_label_mat(int_matrix,coords,plot_nbs_adj_mat_file,
                 edge_col.append('green')
             elif int(w) == -2:
                 edge_col.append('cyan')
+            elif int(w) == -3:
+                edge_col.append('blue')
             elif int(w) == -4:
                 edge_col.append('darkblue')
+                
             elif int(w) == 1:
                 edge_col.append('yellow')
             elif int(w) == 2:
                 edge_col.append('orange')
+            elif int(w) == 3:
+                edge_col.append('darkorange')
             elif int(w) == 4:
                 edge_col.append('red')
                 
@@ -1858,7 +1900,7 @@ def plot_igraph_3D_signed_bin_label_mat(int_matrix,coords,plot_nbs_adj_mat_file,
         
         g.es['color'] = edge_col
         
-        ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = 0.2,    edge_width =  np.array(np.absolute(g.es['weight']))*0.1)
+        ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = 0.2,    edge_width =  1)
         
     else:
         ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = 0.2,    edge_width =  0.01)
@@ -1874,6 +1916,11 @@ def plot_igraph_3D_signed_bin_label_mat(int_matrix,coords,plot_nbs_adj_mat_file,
     
     
 def plot_igraph_3D_categ_upper_mat(upper_matrix,coords,plot_nbs_adj_mat_file,labels = [],dict_colors = igraph_colors):
+    
+    import cairo
+    
+    print upper_matrix.shape
+    print coords.shape 
     
     layout2D = project2D_np(coords)
      
@@ -1904,21 +1951,57 @@ def plot_igraph_3D_categ_upper_mat(upper_matrix,coords,plot_nbs_adj_mat_file,lab
         else:
             edge_col.append("lightgrey")
             
+            
+    #print edge_col
+    
     g.es['color'] = edge_col
     
+    ### labels 
+    null_degree_index, = np.where(np.array(g.degree()) == 0)
+    
+    print null_degree_index
+    
+    np_labels = np.array(labels,dtype = 'string')
+    
+    np_labels[null_degree_index] = ""
+    
+    print np_labels
     
     if len(labels) == len(g.vs):
     
-        g.vs['label'] = labels
+        g.vs['label'] = np_labels.tolist()
         
-        g.vs['label_size'] = 5
-    
-    ###print g
-    #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = np.array(g.es['weight']), edge_curved = True)
-    #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = 0.01, edge_curved = True)
-    ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = 1.0,    edge_width = 1)
+        g.vs['label_size'] = 10
     
     
+    print g.vs
+    
+    #vertex_degree = np.array(g.degree())*0.2
+    
+        
+        
+    ####print g
+    ##ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = np.array(g.es['weight']), edge_curved = True)
+    ##ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = 0.01, edge_curved = True)
+    plot = ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = 1.0,    edge_width = 1)
+     
+    ### Construct the plot
+    #plot = ig.Plot(plot_nbs_adj_mat_file, bbox=(600, 650), background="white")
+
+    ## Grab the surface, construct a drawing context and a TextDrawer
+    #ctx = cairo.Context(plot.surface)
+    #ctx.select_font_face("Arial", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+    
+    ## Create the graph and add it to the plot
+    #plot.add(g, bbox=(20, 70, 580, 630), layout = layout2D.tolist() , vertex_size = 1.0,    edge_width = 1)
+
+    ## Make the plot draw itself on the Cairo surface
+    #plot.redraw()
+
+    ## Save the plot
+    #plot.save()
+
+
     
 def plot_igraph_3D_int_label_mat(int_matrix,coords,plot_nbs_adj_mat_file):
     
@@ -2899,26 +2982,41 @@ def plot_3D_igraph_all_modules_coomatrix_rel_coords(community_vect,node_rel_coor
     ######### colors
     
     vertex_col = []
+    vertex_label_col = []
     
     for i,v in enumerate(g_all.vs):
         mod_index = community_vect[i]
         if (mod_index != len(igraph_colors)-1):
             vertex_col.append(igraph_colors[mod_index])
+            vertex_label_col.append(igraph_colors[mod_index])
         else:
             vertex_col.append("lightgrey")
+            vertex_label_col.append(igraph_colors[mod_index])
     
     g_all.vs['color'] = vertex_col
+    g_all.vs['label_color'] = vertex_label_col
     
+    ### node_labels 
+    null_degree_index, = np.where(np.array(g_all.degree()) == 0)
+    
+    #print null_degree_index
+    
+    np_labels = np.array(node_labels,dtype = 'string')
+    
+    np_labels[null_degree_index] = ""
+    
+    #print np_labels
     
     if len(node_labels) == len(g_all.vs):
     
         print "$$$$$$$$$$$$$$$$ Labels $$$$$$$$$$$$$$$$$$$$$$$$"
         
-        g_all.vs['label'] = node_labels
+        g_all.vs['label'] = np_labels.tolist()
         
-        g_all.vs['label_size'] = 5
-        
+        g_all.vs['label_size'] = 10
+    
         g_all.vs['label_dist'] = 2
+        
     
     
     views = [[0.0,0.0],[0.,90.0],[90.,0.0],[0.,-90.0]]
@@ -2983,17 +3081,28 @@ def plot_3D_igraph_single_modules_coomatrix_rel_coords(community_vect,node_rel_c
     
     g_all= ig.Graph.Weighted_Adjacency(matrix = mat.tolist(), mode=ig.ADJ_UNDIRECTED, attr="weight",loops = False)
         
+        
+    ### node_labels 
+    null_degree_index, = np.where(np.array(g_all.degree()) == 0)
+    
+    #print null_degree_index
+    
+    np_labels = np.array(node_labels,dtype = 'string')
+    
+    np_labels[null_degree_index] = ""
+    
+    #print np_labels
+    
     if len(node_labels) == len(g_all.vs):
     
         print "$$$$$$$$$$$$$$$$ Labels $$$$$$$$$$$$$$$$$$$$$$$$"
         
-        g_all.vs['label'] = node_labels
+        g_all.vs['label'] = np_labels.tolist()
         
-        g_all.vs['label_size'] = 5
-        
+        g_all.vs['label_size'] = 15
+    
         g_all.vs['label_dist'] = 2
-    
-    
+        
     for mod_index in np.unique(community_vect):
     
         print "Module index %d has %d nodes"%(mod_index,np.sum(community_vect == mod_index))
@@ -3078,7 +3187,7 @@ def plot_3D_igraph_single_modules_coomatrix_rel_coords(community_vect,node_rel_c
     
     
 ############ with node roles
-def plot_3D_igraph_single_modules_coomatrix_rel_coords_node_roles(community_vect,node_rel_coords,coomatrix,node_roles):
+def plot_3D_igraph_single_modules_coomatrix_rel_coords_node_roles(community_vect,node_rel_coords,coomatrix,node_roles,nb_min_nodes_by_module = 100):
     
     import collections
     
@@ -3121,7 +3230,7 @@ def plot_3D_igraph_single_modules_coomatrix_rel_coords_node_roles(community_vect
     
         print "Module index %d has %d nodes"%(mod_index,np.sum(community_vect == mod_index))
         
-        if np.sum(community_vect == mod_index) < 100:
+        if np.sum(community_vect == mod_index) < nb_min_nodes_by_module:
             
             print "Not enough nodes (%d), skipping plot"%(np.sum(community_vect == mod_index))
             continue
