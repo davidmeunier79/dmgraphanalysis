@@ -118,6 +118,118 @@ def prepare_nbs_stats_rada(mod_files,coords_files,node_corres_files,gm_mask_coor
         
 #### prepare data for stats on cor_mat 
 
+
+
+
+def prepare_nbs_stats_cor_mat_filter(cor_mat_files,coords_files,gm_mask_coords_file,filtered_nodes_file):
+    
+    import numpy as np
+    import os
+
+    #import nibabel as nib
+    
+    from dmgraphanalysis.utils_cor import return_corres_correl_mat
+    #from dmgraphanalysis.utils_cor import read_Pajek_corres_nodes,read_lol_file
+    
+    
+    
+    print 'loading filtered nodes'
+    
+    
+    filtered_nodes = np.array(np.load(filtered_nodes_file),dtype = 'int')
+    
+    print filtered_nodes
+    
+    index_filtered_nodes, = np.where(filtered_nodes == 1)
+    
+    print index_filtered_nodes.shape
+    
+    print 'loading gm mask corres'
+    
+    gm_mask_coords = np.loadtxt(gm_mask_coords_file)
+    
+    print gm_mask_coords.shape
+        
+    #### read matrix from the first group
+    #print Z_cor_mat_files
+    
+    sum_cor_mat_matrix = np.zeros((index_filtered_nodes.shape[0],index_filtered_nodes.shape[0]),dtype = float)
+    print sum_cor_mat_matrix.shape
+    
+            
+    group_cor_mat_matrix = np.zeros((index_filtered_nodes.shape[0],index_filtered_nodes.shape[0],len(cor_mat_files)),dtype = float)
+    print group_cor_mat_matrix.shape
+    
+    
+    group_vect = np.zeros((index_filtered_nodes.shape[0],len(cor_mat_files)),dtype = float)
+    print group_vect.shape
+    
+    if len(cor_mat_files) != len(coords_files):
+        print "warning, length of cor_mat_files, coords_files are imcompatible {} {} {}".format(len(cor_mat_files),len(coords_files))
+    
+    for index_file in range(len(cor_mat_files)):
+        
+        print cor_mat_files[index_file]
+        
+        if os.path.exists(cor_mat_files[index_file]) and os.path.exists(coords_files[index_file]):
+        
+            Z_cor_mat = np.load(cor_mat_files[index_file])
+            print Z_cor_mat.shape
+            
+            
+            coords = np.loadtxt(coords_files[index_file])
+            print coords.shape
+            
+            
+            
+            corres_cor_mat,possible_edge_mat = return_corres_correl_mat(Z_cor_mat,coords,gm_mask_coords)
+            
+            print corres_cor_mat.shape
+            
+            tmp_filtered_corres_cor_mat = corres_cor_mat[index_filtered_nodes,:]
+            filtered_corres_cor_mat = tmp_filtered_corres_cor_mat[:,index_filtered_nodes]
+            
+            print filtered_corres_cor_mat
+            #print filtered_corres_cor_mat.shape
+            
+            print group_cor_mat_matrix.shape
+            
+            sum_cor_mat_matrix += filtered_corres_cor_mat
+            
+            group_cor_mat_matrix[:,:,index_file] = filtered_corres_cor_mat
+            
+            group_vect[:,index_file] = np.sum(filtered_corres_cor_mat,axis = 0)
+            
+            
+        else:
+            print "Warning, one or more files between " + cor_mat_files[index_file] + ', ' + coords_files[index_file] + " do not exists"
+        
+        
+    group_cor_mat_matrix_file= os.path.abspath('group_cor_mat_matrix.npy')
+    
+    np.save(group_cor_mat_matrix_file,group_cor_mat_matrix)
+    
+        
+    group_vect_file= os.path.abspath('group_vect.npy')
+    
+    np.save(group_vect_file,group_vect)
+    
+        
+    print 'saving cor_mat matrix'
+    
+    avg_cor_mat_matrix_file = os.path.abspath('avg_cor_mat_matrix.npy')
+    
+    if (len(cor_mat_files) != 0):
+    
+            avg_cor_mat_matrix = sum_cor_mat_matrix /len(cor_mat_files)
+            
+            np.save(avg_cor_mat_matrix_file,avg_cor_mat_matrix)
+    
+    return group_cor_mat_matrix_file,avg_cor_mat_matrix_file,group_vect_file
+        
+        
+        
+        
 def prepare_nbs_stats_cor_mat(cor_mat_files,coords_files,gm_mask_coords_file):
     
     import numpy as np
@@ -715,7 +827,7 @@ def compute_pairwise_ttest_stats_fdr(group_cormat_matrix_file1,group_cormat_matr
     assert Ix == Jx
     assert Iy == Jy
     
-    signif_signed_adj_mat  = stats.compute_pairwise_ttest_fdr(group_cormat_matrix1,group_cormat_matrix2,t_test_thresh_fdr)
+    signif_signed_adj_mat  = stats.compute_pairwise_ttest_rel_fdr(group_cormat_matrix1,group_cormat_matrix2,t_test_thresh_fdr)
     
     print 'save pairwise signed stat file'
     
@@ -839,4 +951,98 @@ def compute_pairwise_correl_stats_fdr(group_cormat_matrix_file,behav_score,corre
     np.save(signif_signed_adj_fdr_mat_file,signif_signed_adj_mat)
     
     return signif_signed_adj_fdr_mat_file
+    
+def remove_nodes_by_labels(remove_labelled_nodes,labels_file,gm_mask_coords_file):
+
+    import numpy as np
+    import os
+    
+    from dmgraphanalysis.utils import get_multiple_indexes
+    
+    from nipype.utils.filemanip import split_filename as split_f
+    
+
+    print 'loading gm mask corres'
+    
+    gm_mask_coords = np.array(np.loadtxt(gm_mask_coords_file),dtype = 'int64')
+    
+    print gm_mask_coords
+    print gm_mask_coords.shape
+    
+    print 'loading labels'
+    
+    labels = [line.strip() for line in open(labels_file)]
+    
+    print labels
+    
+    #### filtering nodes by labels
+    filtered_nodes = np.ones(shape = (len(labels)),dtype = int)
+    
+    for remove_labelled_node in remove_labelled_nodes:
+    
+        print remove_labelled_node
+        
+        if remove_labelled_node in labels:
+        
+            indexes = get_multiple_indexes(labels,remove_labelled_node)
+            
+            print indexes
+            
+            filtered_nodes[indexes] = 0
+            
+        #print labels == remove_labelled_node 
+    
+    #print [int(label != 
+    
+    print filtered_nodes
+    
+    #### filtered nodes
+    filtered_nodes_file = os.path.abspath("filtered_nodes.npy")
+    
+    np.save(filtered_nodes_file,filtered_nodes)
+    
+    
+    #### read matrix from the first group
+    #print Z_cor_mat_files
+    
+    index_filtered_nodes, = np.where(filtered_nodes == 1)
+    
+    print index_filtered_nodes
+    
+    
+        
+    #### filtered labels
+    filtered_labels = np.array(labels,dtype = "string")[index_filtered_nodes]
+    
+    print filtered_labels.shape
+    
+    #### saving filtered labels
+    path, fname, ext = split_f(labels_file)
+    
+    filtered_labels_file = os.path.abspath(fname + '_filtered' + ext)
+    
+    np.savetxt(filtered_labels_file,filtered_labels, fmt = '%s')
+    
+    
+    
+    #### filtered coords
+    filtered_gm_mask_coords = gm_mask_coords[index_filtered_nodes,:]
+    
+    print filtered_gm_mask_coords.shape
+    
+    #### saving filtered coords 
+    path, fname, ext = split_f(gm_mask_coords_file)
+    
+    filtered_gm_mask_coords_file = os.path.abspath(fname + '_filtered' + ext)
+    
+    np.savetxt(filtered_gm_mask_coords_file,filtered_gm_mask_coords, fmt = '%d')
+    
+        
+        
+    return filtered_nodes_file,filtered_labels_file,filtered_gm_mask_coords_file
+    
+    
+    
+    
+
     
