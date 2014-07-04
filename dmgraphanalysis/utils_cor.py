@@ -1685,13 +1685,16 @@ def return_dense_correl_mat(Z_list,coords,gm_mask_coords):
     ### from Z_cor_mat
 def return_corres_correl_mat(Z_cor_mat,coords,gm_mask_coords):
     
+    #print coords
+    #print gm_mask_coords
+    
     where_in_gm = where_in_coords(coords,gm_mask_coords)
     
+    #print where_in_gm
     
     print np.min(where_in_gm),np.max(where_in_gm),where_in_gm.shape
     
-    print where_in_gm
-        
+    
     corres_correl_mat = np.zeros((gm_mask_coords.shape[0],gm_mask_coords.shape[0]),dtype = float)
     possible_edge_mat = np.zeros((gm_mask_coords.shape[0],gm_mask_coords.shape[0]),dtype = int)
     
