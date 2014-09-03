@@ -4,7 +4,7 @@ import pylab as pl
     
 import numpy as np
 
-def plot_cormat(plot_file, cor_mat,list_labels):
+def plot_cormat(plot_file, cor_mat,list_labels,label_size =2):
     
     fig1 = plt.figure()
     ax = fig1.add_subplot(1,1,1)
@@ -22,8 +22,8 @@ def plot_cormat(plot_file, cor_mat,list_labels):
         
         if len(list_labels) == cor_mat.shape[0]:
             
-            plt.xticks(range(len(list_labels)), list_labels,rotation='vertical', fontsize=2)
-            plt.yticks(range(len(list_labels)), list_labels, fontsize=2)
+            plt.xticks(range(len(list_labels)), list_labels,rotation='vertical', fontsize=label_size)
+            plt.yticks(range(len(list_labels)), list_labels, fontsize=label_size)
             
             plt.subplots_adjust(top = 0.8)
         else:
@@ -48,7 +48,7 @@ def plot_cormat(plot_file, cor_mat,list_labels):
     #fig1.close()
     del fig1
     
-def plot_ranged_cormat(plot_file, cor_mat,list_labels, fix_full_range):
+def plot_ranged_cormat(plot_file, cor_mat,list_labels, fix_full_range,label_size = 2):
     
     fig1 = plt.figure(frameon=False)
     ax = fig1.add_subplot(1,1,1)
@@ -67,8 +67,8 @@ def plot_ranged_cormat(plot_file, cor_mat,list_labels, fix_full_range):
         
         if len(list_labels) == cor_mat.shape[0]:
             
-            plt.xticks(range(len(list_labels)), list_labels,rotation='vertical', fontsize=2)
-            plt.yticks(range(len(list_labels)), list_labels, fontsize=2)
+            plt.xticks(range(len(list_labels)), list_labels,rotation='vertical', fontsize=label_size)
+            plt.yticks(range(len(list_labels)), list_labels, fontsize=label_size)
             
             plt.subplots_adjust(top = 0.8)
         else:

@@ -1675,15 +1675,18 @@ def project2D(layout, alpha, beta):
     #graph.vs['x2'], graph.vs['y2'], graph.vs['z2'] = zip(*layout2D)
     minX, maxX = min(x), max(x)
     minY, maxY = min(y), max(y)
-    minZ, maxZ = min(z), max(z)
+    #minZ, maxZ = min(z), max(z)
     
     
+    print minX, maxX
+    print minY, maxY
+        
     
     layout2D_x = (x - minX) / (maxX - minX)
     layout2D_y = (y - minY) / (maxY - minY)
     
-    #print layout2D_x
-    #print layout2D_y
+    print layout2D_x
+    print layout2D_y
         
     layout2D = np.transpose(np.vstack((layout2D_x,layout2D_y)))
     
@@ -1697,7 +1700,7 @@ def project2D(layout, alpha, beta):
     
     
     
-def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels = []):
+def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels = [], edge_color = ""):
     
     layout2D = project2D_np(coords)
      
@@ -1729,7 +1732,13 @@ def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels
     
     vertex_degree = np.array(g.degree())*0.2
     
+    if edge_color != "":
     
+        
+        colored_egde_list = g.es.select(weight_eq = 2)
+        
+        colored_egde_list['width'] = 5
+        colored_egde_list["color"] = edge_color
     
     #print vertex_degree
     
@@ -1739,7 +1748,7 @@ def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels
     ###print g
     #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = np.array(g.es['weight']), edge_curved = True)
     #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = 0.01, edge_curved = True)
-    ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = 0.01, edge_curved = False)
+    ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_curved = False)
     
     
 def plot_igraph_3D_int_mat(int_matrix,coords,plot_nbs_adj_mat_file):

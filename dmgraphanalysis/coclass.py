@@ -244,6 +244,79 @@ def export_lol_mask_coclass_file(rada_lol_file,Pajek_net_file,gm_coords_file,mas
     
     return lol_mask_file
     
+    ################################################# basic matrix operation (could be anywhere...)
+    
+def diff_matrix(mat_file1,mat_file2):
+
+    import sys,os
+    
+    import numpy as np
+    
+    from dmgraphanalysis.utils import check_np_shapes
+    
+    mat1 = np.load(mat_file1)
+    
+    print mat1.shape
+    mat2 = np.load(mat_file2)
+    
+    
+    print mat2.shape
+    
+    
+    if check_np_shapes(mat1.shape,mat2.shape):
+        
+        diff_mat = mat1 - mat2
+        
+        print diff_mat
+        
+        diff_mat_file = os.path.abspath("diff_matrix.npy")
+        
+        np.save(diff_mat_file,diff_mat)
+        
+        return diff_mat_file
+        
+    else:
+    
+        print "Warning, shapes are different, cannot substrat matrices"
+        sys.exit()
+        
+def pos_neg_thr_matrix(diff_mat_file,threshold):
+
+    import os
+    import numpy as np
+
+    diff_mat = np.load(diff_mat_file)
+    
+    print diff_mat.shape
+    
+    ### bin_pos_mat
+    bin_pos_mat = np.zeros(shape = diff_mat.shape, dtype = diff_mat.dtype)
+    
+    bin_pos_mat[diff_mat > threshold] = 1
+    
+    print bin_pos_mat
+    
+    bin_pos_mat_file = os.path.abspath('bin_pos_mat.npy')
+    
+    np.save(bin_pos_mat_file,bin_pos_mat)
+    
+    
+    ### bin_neg_mat
+    bin_neg_mat = np.zeros(shape = diff_mat.shape, dtype = diff_mat.dtype)
+    
+    bin_neg_mat[diff_mat < -threshold] = 1
+    
+    print bin_neg_mat
+    
+    bin_neg_mat_file = os.path.abspath('bin_neg_mat.npy')
+    
+    np.save(bin_neg_mat_file,bin_neg_mat)
+        
+    return bin_pos_mat_file,bin_neg_mat_file
+    
+    
+    
+    
     ################################################# reorder
     
 def reorder_hclust_matrix(coclass_matrix_file,method_hie = 'ward'):
@@ -432,6 +505,39 @@ def reorder_coclass_matrix_labels_coords_with_force_order(coclass_matrix_file,la
     
     ################################ plot coclass matrix ############################
   
+def plot_igraph_coclass_matrix(coclass_matrix_file,gm_mask_coords_file,threshold):
+
+    import numpy as np
+    import os
+    import pylab as pl
+    
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_int_mat
+    
+    from nipype.utils.filemanip import split_filename as split_f
+    
+    print 'loading coclass_matrix'
+    coclass_matrix = np.load(coclass_matrix_file)
+    
+    path,fname,ext = split_f(coclass_matrix_file)
+    
+    
+    print 'loading gm mask corres'
+    
+    gm_mask_coords = np.loadtxt(gm_mask_coords_file)
+    
+    print gm_mask_coords.shape
+        
+        
+    print 'plotting igraph'
+    
+    coclass_matrix[coclass_matrix < threshold] = 0
+    
+    plot_igraph_3D_coclass_matrix_file = os.path.abspath('plot_igraph_3D_coclass_matrix.eps')
+    
+    plot_igraph_3D_int_mat(coclass_matrix,gm_mask_coords,plot_igraph_3D_coclass_matrix_file)
+    
+    return plot_igraph_3D_coclass_matrix_file    
+
   
 def plot_igraph_coclass_matrix_labels(coclass_matrix_file,gm_mask_coords_file,threshold,labels_file):
 
@@ -471,15 +577,32 @@ def plot_igraph_coclass_matrix_labels(coclass_matrix_file,gm_mask_coords_file,th
     
     return plot_igraph_3D_coclass_matrix_file    
 
-def plot_igraph_coclass_matrix(coclass_matrix_file,gm_mask_coords_file,threshold):
+    
+def plot_igraph_filtered_coclass_matrix_labels(coclass_matrix_file,gm_mask_coords_file,threshold,labels_file,filtered_file):
 
     import numpy as np
     import os
     import pylab as pl
     
-    from dmgraphanalysis.plot_igraph import plot_igraph_3D_int_mat
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_int_mat_labels
     
     from nipype.utils.filemanip import split_filename as split_f
+    
+    
+    print "loading filter file"
+    
+    np_filter = np.array(np.loadtxt(filtered_file),dtype = "bool")
+    
+    print np_filter
+    
+    
+    
+    
+    
+    print 'loading labels'
+    
+    labels = [line.strip() for line in open(labels_file)]
+    
     
     print 'loading coclass_matrix'
     coclass_matrix = np.load(coclass_matrix_file)
@@ -489,21 +612,123 @@ def plot_igraph_coclass_matrix(coclass_matrix_file,gm_mask_coords_file,threshold
     
     print 'loading gm mask corres'
     
-    gm_mask_coords = np.loadtxt(gm_mask_coords_file)
+    gm_mask_coords = np.array(np.loadtxt(gm_mask_coords_file),dtype = 'float')
     
     print gm_mask_coords.shape
         
         
+        
+    
+    #### filtering data
+    
+    np_filtered_labels = np.array(labels, dtype = 'string')[np_filter]
+    
+    print np_filtered_labels
+    
+    tmp_coclass_matrix = coclass_matrix[:,np_filter]
+    
+    filtered_coclass_matrix = tmp_coclass_matrix[np_filter,:]
+    
+    print filtered_coclass_matrix
+    print filtered_coclass_matrix.shape
+    
+    filtered_gm_mask_coords = gm_mask_coords[np_filter,:]
+    
+    print filtered_gm_mask_coords    
+           
+        
+        
+        
     print 'plotting igraph'
     
-    coclass_matrix[coclass_matrix < threshold] = 0
+    filtered_coclass_matrix[filtered_coclass_matrix < threshold] = 0
     
-    plot_igraph_3D_coclass_matrix_file = os.path.abspath('plot_igraph_3D_coclass_matrix.eps')
+    print filtered_coclass_matrix
     
-    plot_igraph_3D_int_mat(coclass_matrix,gm_mask_coords,plot_igraph_3D_coclass_matrix_file)
+    plot_igraph_3D_coclass_matrix_file = os.path.abspath('plot_igraph_3D_filtered_coclass_matrix.eps')
+    
+    plot_igraph_3D_int_mat_labels(filtered_coclass_matrix,filtered_gm_mask_coords,plot_igraph_3D_coclass_matrix_file,labels = np_filtered_labels.tolist())
     
     return plot_igraph_3D_coclass_matrix_file    
 
+def plot_igraph_filtered_coclass_matrix_labels_bin_mat_color(coclass_matrix_file,gm_mask_coords_file,threshold,labels_file,filtered_file,bin_mat_file,edge_color):
+
+    import numpy as np
+    import os
+    import pylab as pl
+    
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_int_mat_labels
+    
+    from nipype.utils.filemanip import split_filename as split_f
+    
+    
+    print "loading filter file"
+    
+    np_filter = np.array(np.loadtxt(filtered_file),dtype = "bool")
+    
+    print np_filter
+    
+    print "loading bin mat file"
+    
+    bin_mat = np.load(bin_mat_file)
+    
+    print bin_mat
+    
+    print 'loading labels'
+    
+    labels = [line.strip() for line in open(labels_file)]
+    
+    
+    print 'loading coclass_matrix'
+    coclass_matrix = np.load(coclass_matrix_file)
+    
+    path,fname,ext = split_f(coclass_matrix_file)
+    
+    
+    print 'loading gm mask corres'
+    
+    gm_mask_coords = np.array(np.loadtxt(gm_mask_coords_file),dtype = 'float')
+    
+    print gm_mask_coords.shape
+        
+        
+    int_labelled_matrix = np.zeros(shape = coclass_matrix.shape, dtype = 'int')
+    
+    int_labelled_matrix[coclass_matrix > threshold] = 1
+    
+    int_labelled_matrix[np.logical_and(bin_mat != 0,coclass_matrix > threshold)] = 2
+    
+    #### filtering data
+    
+    np_filtered_labels = np.array(labels, dtype = 'string')[np_filter]
+    
+    print np_filtered_labels
+    
+    tmp_int_labelled_matrix = int_labelled_matrix[np_filter,:]
+    
+    filtered_int_labelled_matrix = tmp_int_labelled_matrix[:,np_filter]
+    
+    #tmp_int_labelled_matrix = int_labelled_matrix[:,np_filter]
+    
+    #filtered_int_labelled_matrix = tmp_int_labelled_matrix[np_filter,:]
+    
+    print filtered_int_labelled_matrix
+    print filtered_int_labelled_matrix.shape
+    
+    filtered_gm_mask_coords = gm_mask_coords[np_filter,:]
+    
+    print filtered_gm_mask_coords    
+           
+    print 'plotting igraph'
+    
+    print filtered_int_labelled_matrix
+    
+    plot_igraph_coclass_matrix_file = os.path.abspath('plot_igraph_3D_filtered_coclass_matrix.eps')
+    
+    plot_igraph_3D_int_mat_labels(filtered_int_labelled_matrix,filtered_gm_mask_coords,plot_igraph_coclass_matrix_file,labels = np_filtered_labels.tolist(),edge_color = edge_color)
+    
+    return plot_igraph_coclass_matrix_file    
+    
     ############################## plot coclass
     
 def plot_coclass_matrix(coclass_matrix_file):
@@ -606,6 +831,168 @@ def plot_coclass_matrix_labels(coclass_matrix_file,labels_file):
     
     return plot_hist_coclass_matrix_file,plot_heatmap_coclass_matrix_file
     
+    ######### plot coclass with lables and fixed range
+    
+def plot_coclass_matrix_labels_range(coclass_matrix_file,labels_file,list_value_range):
+
+    import numpy as np
+    import os
+    
+    from nipype.utils.filemanip import split_filename as split_f
+    
+    from dmgraphanalysis.utils_plot import plot_ranged_cormat
+    #from dmgraphanalysis.utils_plot import plot_cormat
+    
+    print 'loading labels'
+    labels = [line.strip() for line in open(labels_file)]
+    
+    np_labels = np.array(labels,dtype = 'string')
+    
+    #print np_labels
+    
+    #print coclass_mat.shape
+    
+    print 'loading coclass'
+    coclass_mat = np.load(coclass_matrix_file)
+    
+    
+    print 'plotting heatmap'
+    
+    path,fname,ext = split_f(coclass_matrix_file)
+    
+    plot_coclass_matrix_file =  os.path.abspath('heatmap_' + fname + '.eps')
+    
+    plot_ranged_cormat(plot_coclass_matrix_file,coclass_mat,labels,fix_full_range = list_value_range)
+    
+    return plot_coclass_matrix_file
+    
+    
+
+def plot_filtered_coclass_matrix_labels(coclass_matrix_file,labels_file,filtered_file):
+
+
+    import numpy as np
+    import os
+    import matplotlib.pyplot as plt
+    import pylab as pl
+    
+    from nipype.utils.filemanip import split_filename as split_f
+    
+    from dmgraphanalysis.utils_plot import plot_hist,plot_cormat
+    
+    print "loading filter file"
+    
+    np_filter = np.array(np.loadtxt(filtered_file),dtype = "bool")
+    
+    print np_filter
+    
+    
+    
+    
+    print 'loading labels'
+    labels = [line.strip() for line in open(labels_file)]
+    
+    #print labels
+    
+    print 'loading coclass_matrix'
+    
+    coclass_matrix = np.load(coclass_matrix_file)
+    
+    path,fname,ext = split_f(coclass_matrix_file)
+    
+    
+    
+    #### filtering data
+    
+    np_filtered_labels = np.array(labels, dtype = 'string')[np_filter]
+    
+    print np_filtered_labels
+    
+    tmp_coclass_matrix = coclass_matrix[:,np_filter]
+    
+    filtered_coclass_matrix = tmp_coclass_matrix[np_filter,:]
+    
+    print filtered_coclass_matrix
+    print filtered_coclass_matrix.shape
+    
+    
+    #### heatmap
+    
+    print 'plotting coclass matrix heatmap'
+    
+    plot_heatmap_coclass_matrix_file =  os.path.abspath('heatmap_filtered_' + fname + '.eps')
+    
+    plot_cormat(plot_heatmap_coclass_matrix_file,filtered_coclass_matrix,np_filtered_labels.tolist(),label_size = 5)
+    
+    #### histogram 
+    
+    print 'plotting coclass matrix histogram'
+     
+    plot_hist_coclass_matrix_file = os.path.abspath('hist_filtered_coclass_matrix.eps')
+    
+    plot_hist(plot_hist_coclass_matrix_file,filtered_coclass_matrix)
+    
+    return plot_hist_coclass_matrix_file,plot_heatmap_coclass_matrix_file
+    
+    
+    
+def plot_filtered_coclass_matrix_labels_range(coclass_matrix_file,labels_file,filtered_file,list_value_range):
+
+    import numpy as np
+    import os
+    
+    from nipype.utils.filemanip import split_filename as split_f
+    
+    from dmgraphanalysis.utils_plot import plot_ranged_cormat
+    #from dmgraphanalysis.utils_plot import plot_cormat
+    
+    print "loading filter file"
+    
+    np_filter = np.array(np.loadtxt(filtered_file),dtype = "bool")
+    
+    print np_filter
+    
+    
+    
+    print 'loading labels'
+    labels = [line.strip() for line in open(labels_file)]
+    
+    np_labels = np.array(labels,dtype = 'string')
+    
+    #print np_labels
+    
+    #print coclass_mat.shape
+    
+    print 'loading coclass'
+    coclass_matrix = np.load(coclass_matrix_file)
+    
+    
+    print "filter data"
+    
+    #### filtering data
+    
+    np_filtered_labels = np.array(labels, dtype = 'string')[np_filter]
+    
+    print np_filtered_labels
+    
+    tmp_coclass_matrix = coclass_matrix[:,np_filter]
+    
+    filtered_coclass_matrix = tmp_coclass_matrix[np_filter,:]
+    
+    print filtered_coclass_matrix
+    print filtered_coclass_matrix.shape
+    
+    print 'plotting heatmap'
+    
+    path,fname,ext = split_f(coclass_matrix_file)
+    
+    plot_coclass_matrix_file =  os.path.abspath('heatmap_filtered_' + fname + '.eps')
+    
+    plot_ranged_cormat(plot_coclass_matrix_file,filtered_coclass_matrix,np_filtered_labels.tolist(),fix_full_range = list_value_range, label_size = 10)
+    
+    return plot_coclass_matrix_file
+    
+    
     ########## reorder and plot coclass + labels 
     
 def plot_order_coclass_matrix_labels(coclass_matrix_file,node_order_vect_file,labels_file):
@@ -655,39 +1042,7 @@ def plot_order_coclass_matrix_labels(coclass_matrix_file,node_order_vect_file,la
     
     return plot_reordered_coclass_matrix_file
     
-def plot_coclass_matrix_labels_range(coclass_matrix_file,labels_file,list_value_range):
 
-    import numpy as np
-    import os
-    
-    from nipype.utils.filemanip import split_filename as split_f
-    
-    from dmgraphanalysis.utils_plot import plot_ranged_cormat
-    #from dmgraphanalysis.utils_plot import plot_cormat
-    
-    print 'loading labels'
-    labels = [line.strip() for line in open(labels_file)]
-    
-    np_labels = np.array(labels,dtype = 'string')
-    
-    #print np_labels
-    
-    #print coclass_mat.shape
-    
-    print 'loading coclass'
-    coclass_mat = np.load(coclass_matrix_file)
-    
-    
-    print 'plotting heatmap'
-    
-    path,fname,ext = split_f(coclass_matrix_file)
-    
-    plot_coclass_matrix_file =  os.path.abspath('heatmap_' + fname + '.eps')
-    
-    plot_ranged_cormat(plot_coclass_matrix_file,coclass_mat,labels,fix_full_range = list_value_range)
-    
-    return plot_coclass_matrix_file
-    
     ########### reorder and plot coclass + labels + coords
     
 #def plot_order_coclass_matrix_labels_coords(coclass_matrix_file,node_order_vect_file,labels_file,coords_file):

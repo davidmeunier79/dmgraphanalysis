@@ -1539,6 +1539,9 @@ def return_coclass_mat(community_vect,corres_coords,gm_mask_coords):
     
     where_in_gm = where_in_coords(corres_coords,gm_mask_coords)
     
+    print where_in_gm
+    
+    #0/0
     print np.min(where_in_gm),np.max(where_in_gm),where_in_gm.shape
     
     

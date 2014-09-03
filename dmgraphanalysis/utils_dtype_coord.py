@@ -24,7 +24,11 @@ def is_in_coords(np_coords1,np_coords2):
     return np.array([e in coords_dt1 for e in coords_dt2], dtype = bool)
     
 def where_in_coords(np_coords1,np_coords2):
-
+    
+    #print np_coords1
+    #print np_coords2
+    #0/0
+    
     return np.array(np.where(is_in_coords(np_coords1,np_coords2)), dtype = 'int64').reshape(-1)
 
 def coords_dt_equals(coords_dt1,coords_dt2):

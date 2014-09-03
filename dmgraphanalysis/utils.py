@@ -47,13 +47,30 @@ def check_dimensions(indexes,shape):
     else: 
         return False
         
+def check_np_shapes(np_shape1,np_shape2):
+
+    if len(np_shape1) != len(np_shape2):
+    
+        print "Warning, dimensions for nd array1 %d and nd array2 %d do not match"%(len(np_shape1),len(np_shape2))
+        
+        return 0
+        
+    for i in range(len(np_shape1)):
+    
+        if np_shape1[i] != np_shape2[i]:
+            
+            print "Warning, number of elements for dimension %d is different : %d != %d"%(i,np_shape1[i],np_shape2[i])
+        
+            return 0
+            
+    return 1
 
 def check_np_dimension(np_shape, np_coords):
     
     ### verification des dimensions
     if len(np_shape) != np_coords.shape[0]:
     
-        print "Warning dimensions for nd array %d and coords %d do not match"%(len(np_shape) != np_coords.shape[0])
+        print "Warning dimensions for nd array %d and coords %d do not match"%(len(np_shape),np_coords.shape[0])
         
         return 0
         
