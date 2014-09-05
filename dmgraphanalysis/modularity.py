@@ -729,6 +729,26 @@ def export_lol_mask_file_coords_net(rada_lol_file,Pajek_net_file,coords_net_file
     return lol_mask_file
     
 
+def get_modularity_value_from_lol_file(modularity_file):
+    
+    with open(modularity_file,'r') as f:
+        
+        for line in f.readlines():
+        
+            split_line = line.strip().split(' ')
+            
+            print split_line
+            
+            if split_line[0] == 'Q':
+            
+                print "Found modularity value line"
+                
+                return split_line[2] 
+                
+                
+        print "Unable to find modularity line in file, returning -1"
+        
+        return -1.0
 ############################# computation on modules 
     
     
