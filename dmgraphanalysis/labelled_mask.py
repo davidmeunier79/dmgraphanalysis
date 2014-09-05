@@ -1007,6 +1007,170 @@ def compute_labelled_mask_from_ROI_coords(neighbourhood = 1):
     return ROI_coords_labelled_mask_file,ROI_coords_labels_file
     
     
+    
+def merge_coord_and_label_files(ROI_coords_dir):
+
+    import os
+    import numpy as np
+    
+    list_coords = []
+    
+    list_labels = []
+        
+    for event in ['Odor','Recall']:
+    
+        print event
+        
+        event_coords_file = os.path.join(ROI_coords_dir,"Coord_Network"+event+".txt")
+        
+        print event_coords_file
+        
+        for line in open(event_coords_file):
+        
+            print line
+            
+            list_coord = map(int,line.strip().split('\t'))
+            
+            print list_coord
+            
+            list_coords.append(list_coord)
+            
+            
+        event_labels_file = os.path.join(ROI_coords_dir,"Labels_Network"+event+".txt")
+        
+        for line in open(event_labels_file):
+        
+            print line
+            
+            list_labels.append(line.strip())
+                    
+        
+    print list_coords
+    
+    print list_labels
+        
+    print len(list_coords)
+    print len(list_labels)
+    
+    ###### saving merged file
+    all_coords_file = os.path.join(ROI_coords_dir,"Coord_Network_Odor-Recall.txt")
+    all_labels_file = os.path.join(ROI_coords_dir,"Labels_Network_Odor-Recall.txt")
+    
+    np.savetxt(all_coords_file,np.array(list_coords,dtype = 'int'),fmt = '%d')
+    np.savetxt(all_labels_file,np.array(list_labels,dtype = 'string'),fmt = '%s')
+    
+        #f.write(str(list_coords))
+    
+    
+    return all_coords_file,all_labels_file
+    
+    
+def compute_labelled_mask_from_ROI_coords_files(resliced_full_HO_img_file,MNI_coords_file,neighbourhood = 1):
+    """
+    Compute labeled mask by specifying MNI coordinates and labels 'at hand'
+    #"""
+    #from define_variables import resliced_full_HO_img_file,peak_activation_mask_analysis_name
+    
+    #from define_variables import ROI_coords_mask_dir,ROI_coords_labelled_mask_file,ROI_coords_labels_file
+    
+    #from labelled_mask import remove_close_peaks_neigh_in_binary_template
+    
+    from nipype.utils.filemanip import split_filename as split_f
+    
+    
+    
+    
+    from utils import check_np_dimension
+    
+    import itertools as iter
+    
+    from nipy.labs.viz import coord_transform
+
+    import numpy as np
+    import nibabel as nib
+    
+    orig_image = nib.load(resliced_full_HO_img_file)
+    
+    orig_image_data = orig_image.get_data()
+    
+    orig_image_data_shape = orig_image_data.shape
+    
+    print orig_image_data_shape
+    
+    orig_image_data_sform = orig_image.get_sform()
+    
+    print orig_image_data_sform
+    
+    ROI_MNI_coords_list = np.array(np.loadtxt(MNI_coords_file),dtype = 'int').tolist()
+    
+    print ROI_MNI_coords_list
+    
+    #ROI_labels = [lign.strip() for lign in open(labels_file)]
+    
+    #print labels
+    
+    print len(ROI_MNI_coords_list)
+    #print len(ROI_labels)
+    
+    ### transform MNI coords to numpy coords
+    ## transfo inverse de celle stockes dans le header
+    mni_sform_inv = np.linalg.inv(orig_image_data_sform)
+    
+    ROI_coords = np.array([coord_transform(x, y, z, mni_sform_inv) for x,y,z in ROI_MNI_coords_list],dtype = "int64")
+    
+    #print ROI_coords
+    
+    #ROI_coords_list = ROI_coords.tolist()
+    
+    #print ROI_coords_list
+    
+    #list_selected_peaks_coords,indexed_mask_rois_data,list_selected_peaks_indexes = remove_close_peaks_neigh_in_binary_template(ROI_coords_list,orig_image_data,min_dist_between_ROIs)
+    
+    #print list_selected_peaks_indexes
+    #print len(list_selected_peaks_indexes)
+    
+    
+    ROI_coords_labelled_mask = np.zeros(shape = orig_image_data_shape,dtype = 'int64') - 1
+    
+    print ROI_coords_labelled_mask
+    
+    
+    neigh_range = range(-neighbourhood,neighbourhood+1)
+    
+    
+    
+    for i,ROI_coord in enumerate(ROI_coords):
+    
+        print ROI_coord
+        
+        for relative_coord in iter.product(neigh_range, repeat=3):
+
+            neigh_x,neigh_y,neigh_z = ROI_coord + relative_coord
+
+            print neigh_x,neigh_y,neigh_z
+            
+            if check_np_dimension(ROI_coords_labelled_mask.shape,np.array([neigh_x,neigh_y,neigh_z],dtype = 'int64')):
+            
+                ROI_coords_labelled_mask[neigh_x,neigh_y,neigh_z] = i
+            
+           
+        
+    #path, fname, ext = '','',''
+    path, fname, ext = split_f(MNI_coords_file)
+    
+    ROI_coords_labelled_mask_file = os.path.join(path,"All_labelled_ROI-neigh_"+str(neighbourhood)+".nii")
+    
+    ROI_coords_np_coords_file = os.path.join(path,"All_ROI_np_coords.txt")
+    
+    ###save ROI_coords_labelled_mask
+    nib.save(nib.Nifti1Image(ROI_coords_labelled_mask,orig_image.get_affine(),orig_image.get_header()),ROI_coords_labelled_mask_file)
+    
+    #### save np coords
+    np.savetxt(ROI_coords_np_coords_file,np.array(ROI_coords,dtype = int),fmt = "%d")
+    
+    
+    return ROI_coords_labelled_mask_file
+    
 def compute_labelled_mask_from_anat_ROIs(ROI_dir):
     from define_variables import resliced_full_HO_img_file
     from nipype.utils.filemanip import split_filename as split_f
