@@ -1700,10 +1700,9 @@ def project2D(layout, alpha, beta):
     
     
     
-def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels = [], edge_color = ""):
+def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels = [], edge_color = "", layout = ''):
     
-    layout2D = project2D_np(coords)
-     
+    
     #print layout2D
         
     mod_list = int_matrix.tolist()
@@ -1711,6 +1710,9 @@ def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels
     #print mod_list
     
     g= ig.Graph.Weighted_Adjacency(mod_list,mode=ig.ADJ_MAX)
+    
+    
+    print labels
     
     
     null_degree_index, = np.where(np.array(g.degree()) == 0)
@@ -1722,6 +1724,7 @@ def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels
     np_labels[null_degree_index] = ""
     
     print np_labels
+    
     
     if len(labels) == len(g.vs):
     
@@ -1740,15 +1743,45 @@ def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels
         colored_egde_list['width'] = 5
         colored_egde_list["color"] = edge_color
     
-    #print vertex_degree
+    else :
+        
+        print np.unique(int_matrix)
+        
+        edge_colors = ['Gray','Blue','Red']
+        
+        for i,index in enumerate(np.unique(int_matrix)[1:]):
+        
+            colored_egde_list = g.es.select(weight_eq = index)
+            
+            print len(colored_egde_list),np.sum(int_matrix == index)
+            
+            for e in colored_egde_list:
+            
+                print e.tuple
+                
+                print int_matrix[e.tuple[0],e.tuple[1]]        
+            
+            colored_egde_list["color"] = edge_colors[i]
+        
+            print i,index,len(colored_egde_list)
+            
+    print g.vs['label']
     
-    #g.es['sign'] = np.sign(g)
     
-    #
+    
+    if layout == 'FR':
+    
+        layout2D = g.layout_fruchterman_reingold()
+    
+    else:
+    
+        layout2D = project2D_np(coords).tolist()
+     
+    
     ###print g
     #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = np.array(g.es['weight']), edge_curved = True)
     #ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_width = 0.01, edge_curved = True)
-    ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D.tolist() , vertex_size = vertex_degree,    edge_curved = False)
+    ig.plot(g, plot_nbs_adj_mat_file, layout = layout2D , vertex_size = vertex_degree,    edge_curved = False)
     
     
 def plot_igraph_3D_int_mat(int_matrix,coords,plot_nbs_adj_mat_file):
