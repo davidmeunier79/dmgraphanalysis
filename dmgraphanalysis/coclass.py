@@ -729,6 +729,221 @@ def plot_igraph_filtered_coclass_matrix_labels_bin_mat_color(coclass_matrix_file
     
     return plot_igraph_coclass_matrix_file    
     
+    
+def plot_igraph_conj_coclass_matrix(coclass_matrix_file1,coclass_matrix_file2,gm_mask_coords_file,threshold,labels_file):
+
+    import numpy as np
+    import os
+    import pylab as pl
+    
+    from dmgraphanalysis.plot_igraph import plot_igraph_3D_int_mat_labels
+    from dmgraphanalysis.utils import check_np_shapes
+    
+    from dmgraphanalysis.utils_plot import plot_ranged_cormat
+    
+    
+    from nipype.utils.filemanip import split_filename as split_f
+    
+    print 'loading labels'
+    
+    labels = [line.strip() for line in open(labels_file)]
+    
+    
+    print 'loading coclass_matrices'
+    coclass_matrix1 = np.load(coclass_matrix_file1)
+    coclass_matrix2 = np.load(coclass_matrix_file2)
+    
+    path,fname,ext = split_f(coclass_matrix_file1)
+    
+    
+    print 'loading gm mask corres'
+    
+    gm_mask_coords = np.array(np.loadtxt(gm_mask_coords_file),dtype = 'float')
+    
+    print gm_mask_coords.shape
+        
+        
+    print 'computing diff coclass'
+    
+    if not check_np_shapes(coclass_matrix1.shape,coclass_matrix2.shape):
+        
+        print "$$$$$$$$ exiting, unequal shapes for coclass matrices"
+        
+        sys.exit()
+        
+    diff_matrix = coclass_matrix1 - coclass_matrix2
+    
+    #### 
+    print "plotting diff matrix"    
+    
+    plot_diff_coclass_matrix_file =  os.path.abspath('heatmap_diff_coclass_matrix.eps')
+    
+    plot_ranged_cormat(plot_diff_coclass_matrix_file,diff_matrix,labels,fix_full_range = [-50,50])
+    
+    
+    
+    print "separating the overlap and signif diff netwtorks"
+    
+    conj_labelled_matrix = np.zeros(shape = diff_matrix.shape, dtype = 'int')
+    
+    conj_labelled_matrix[np.logical_and(coclass_matrix1 > threshold,coclass_matrix2 > threshold)] = 1
+    
+    if  np.sum(conj_labelled_matrix != 0) != 0:
+            
+        plot_igraph_conj_coclass_matrix_file = os.path.abspath('plot_igraph_3D_conj_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(conj_labelled_matrix,gm_mask_coords,plot_igraph_conj_coclass_matrix_file,labels = labels)
+        
+        plot_igraph_FR_conj_coclass_matrix_file = os.path.abspath('plot_igraph_FR_conj_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(conj_labelled_matrix,gm_mask_coords,plot_igraph_FR_conj_coclass_matrix_file,labels = labels, layout = 'FR')
+        
+        
+        
+        
+        
+        
+    ## signif coclass1
+    
+    signif_coclass1_labelled_matrix = np.zeros(shape = diff_matrix.shape, dtype = 'int')
+    
+    signif_coclass1_labelled_matrix[np.logical_and(coclass_matrix1 > threshold,diff_matrix > 25)] = 1
+    
+    if np.sum(signif_coclass1_labelled_matrix != 0) != 0:
+        
+        plot_igraph_signif_coclass1_coclass_matrix_file = os.path.abspath('plot_igraph_3D_signif_coclass1_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(signif_coclass1_labelled_matrix,gm_mask_coords,plot_igraph_signif_coclass1_coclass_matrix_file,labels = labels)
+        
+        plot_igraph_FR_signif_coclass1_coclass_matrix_file = os.path.abspath('plot_igraph_FR_signif_coclass1_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(signif_coclass1_labelled_matrix,gm_mask_coords,plot_igraph_FR_signif_coclass1_coclass_matrix_file,labels = labels, layout = 'FR')
+        
+    
+    ## signif coclass2
+    
+    signif_coclass2_labelled_matrix = np.zeros(shape = diff_matrix.shape, dtype = 'int')
+    
+    signif_coclass2_labelled_matrix[np.logical_and(coclass_matrix2 > threshold,diff_matrix < -25)] = 1
+    
+    
+    if np.sum(signif_coclass2_labelled_matrix != 0) != 0:
+    
+        plot_igraph_signif_coclass2_coclass_matrix_file = os.path.abspath('plot_igraph_3D_signif_coclass2_coclass_matrix.eps')
+    
+        plot_igraph_3D_int_mat_labels(signif_coclass2_labelled_matrix,gm_mask_coords,plot_igraph_signif_coclass2_coclass_matrix_file,labels = labels)
+    
+        plot_igraph_FR_signif_coclass2_coclass_matrix_file = os.path.abspath('plot_igraph_FR_signif_coclass2_coclass_matrix.eps')
+    
+        plot_igraph_3D_int_mat_labels(signif_coclass2_labelled_matrix,gm_mask_coords,plot_igraph_FR_signif_coclass2_coclass_matrix_file,labels = labels, layout = 'FR')
+    
+    
+    print "computing signif int_labelled_signif_matrix"
+        
+    int_labelled_signif_matrix = np.zeros(shape = diff_matrix.shape, dtype = 'int')
+    
+    #int_labelled_signif_matrix[np.logical_and(coclass_matrix1 > threshold,coclass_matrix2 > threshold)] = 1
+    
+    #int_labelled_signif_matrix[diff_matrix > 50] = 2
+    #int_labelled_signif_matrix[-diff_matrix < -50] = 3
+    
+    int_labelled_signif_matrix[conj_labelled_matrix == 1] = 1
+    
+    
+    int_labelled_signif_matrix[signif_coclass1_labelled_matrix == 1] = 2
+    int_labelled_signif_matrix[signif_coclass2_labelled_matrix == 1] = 3
+    
+    
+    print int_labelled_signif_matrix
+    
+    print 'plotting igraph'
+    
+    if np.sum(int_labelled_signif_matrix != 0) != 0:
+            
+        plot_igraph_conj_coclass_matrix_file = os.path.abspath('plot_igraph_3D_conj_signif_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(int_labelled_signif_matrix,gm_mask_coords,plot_igraph_conj_coclass_matrix_file,labels = labels)
+        
+    
+        plot_igraph_FR_conj_coclass_matrix_file = os.path.abspath('plot_igraph_FR_conj_signif_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(int_labelled_signif_matrix,gm_mask_coords,plot_igraph_FR_conj_coclass_matrix_file,labels = labels,layout = 'FR')
+        
+    
+    ########### specific (only in one cond, not in conj)
+    ## specif coclass1
+    
+    specif_coclass1_labelled_matrix = np.zeros(shape = diff_matrix.shape, dtype = 'int')
+    
+    specif_coclass1_labelled_matrix[np.logical_and(coclass_matrix1 > threshold,conj_labelled_matrix != 1)] = 1
+    
+    if np.sum(specif_coclass1_labelled_matrix != 0) != 0:
+        
+        plot_igraph_specif_coclass1_coclass_matrix_file = os.path.abspath('plot_igraph_3D_specif_coclass1_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(specif_coclass1_labelled_matrix,gm_mask_coords,plot_igraph_specif_coclass1_coclass_matrix_file,labels = labels)
+        
+        
+        
+        plot_igraph_FR_specif_coclass1_coclass_matrix_file = os.path.abspath('plot_igraph_FR_specif_coclass1_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(specif_coclass1_labelled_matrix,gm_mask_coords,plot_igraph_FR_specif_coclass1_coclass_matrix_file,labels = labels,layout = 'FR')
+        
+        
+    
+    ## specif coclass2
+    
+    specif_coclass2_labelled_matrix = np.zeros(shape = diff_matrix.shape, dtype = 'int')
+    
+    specif_coclass2_labelled_matrix[np.logical_and(coclass_matrix2 > threshold,conj_labelled_matrix != 1)] = 1
+    
+    if np.sum(specif_coclass2_labelled_matrix != 0) != 0:
+        
+        plot_igraph_specif_coclass2_coclass_matrix_file = os.path.abspath('plot_igraph_3D_specif_coclass2_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(specif_coclass2_labelled_matrix,gm_mask_coords,plot_igraph_specif_coclass2_coclass_matrix_file,labels = labels)
+        
+        
+        
+        plot_igraph_FR_specif_coclass2_coclass_matrix_file = os.path.abspath('plot_igraph_FR_specif_coclass2_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(specif_coclass2_labelled_matrix,gm_mask_coords,plot_igraph_FR_specif_coclass2_coclass_matrix_file,labels = labels,layout = 'FR')
+        
+    
+    
+    
+    
+    print "computing specif int_labelled_specif_matrix"
+        
+    int_labelled_specif_matrix = np.zeros(shape = diff_matrix.shape, dtype = 'int')
+    
+    int_labelled_specif_matrix[conj_labelled_matrix == 1] = 1
+    
+    
+    int_labelled_specif_matrix[specif_coclass1_labelled_matrix == 1] = 2
+    int_labelled_specif_matrix[specif_coclass2_labelled_matrix == 1] = 3
+    
+    
+    print int_labelled_specif_matrix
+    
+    print 'plotting igraph'
+    
+    if np.sum(int_labelled_specif_matrix != 0) != 0:
+            
+        plot_igraph_conj_coclass_matrix_file = os.path.abspath('plot_igraph_3D_conj_specif_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(int_labelled_specif_matrix,gm_mask_coords,plot_igraph_conj_coclass_matrix_file,labels = labels)
+        
+        
+        plot_igraph_FR_conj_coclass_matrix_file = os.path.abspath('plot_igraph_FR_conj_specif_coclass_matrix.eps')
+        
+        plot_igraph_3D_int_mat_labels(int_labelled_specif_matrix,gm_mask_coords,plot_igraph_FR_conj_coclass_matrix_file,labels = labels, layout = 'FR')
+        
+        
+        
+        
+    return plot_igraph_conj_coclass_matrix_file
+    
     ############################## plot coclass
     
 def plot_coclass_matrix(coclass_matrix_file):
@@ -866,8 +1081,7 @@ def plot_coclass_matrix_labels_range(coclass_matrix_file,labels_file,list_value_
     
     return plot_coclass_matrix_file
     
-    
-
+    ### filtered
 def plot_filtered_coclass_matrix_labels(coclass_matrix_file,labels_file,filtered_file):
 
 
