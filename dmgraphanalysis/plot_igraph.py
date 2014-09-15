@@ -1694,12 +1694,6 @@ def project2D(layout, alpha, beta):
     
     return layout2D
 
-    
-    
-    
-    
-    
-    
 def plot_igraph_3D_int_mat_labels(int_matrix,coords,plot_nbs_adj_mat_file,labels = [], edge_color = "", layout = ''):
     
     

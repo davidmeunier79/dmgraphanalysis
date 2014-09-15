@@ -757,7 +757,6 @@ def plot_hist_var_cor_mat(cor_mat_file,sderr_cor_mat_file,pval_cor_mat_file):
     
     return plot_hist_cor_mat_file,plot_heatmap_cor_mat_file,plot_hist_sderr_cor_mat_file,plot_heatmap_sderr_cor_mat_file,plot_hist_pval_cor_mat_file,plot_heatmap_pval_cor_mat_file
     
-    
 def plot_hist_conf_cor_mat(cor_mat_file,Z_cor_mat_file,conf_cor_mat_file):
 
     import os
