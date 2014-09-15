@@ -571,6 +571,8 @@ def plot_igraph_coclass_matrix_labels(coclass_matrix_file,gm_mask_coords_file,th
     
     coclass_matrix[coclass_matrix < threshold] = 0
     
+    coclass_matrix[threshold <= coclass_matrix] = 1
+    
     plot_igraph_3D_coclass_matrix_file = os.path.abspath('plot_igraph_3D_coclass_matrix.eps')
     
     plot_igraph_3D_int_mat_labels(coclass_matrix,gm_mask_coords,plot_igraph_3D_coclass_matrix_file,labels = labels)
@@ -938,10 +940,7 @@ def plot_igraph_conj_coclass_matrix(coclass_matrix_file1,coclass_matrix_file2,gm
         plot_igraph_FR_conj_coclass_matrix_file = os.path.abspath('plot_igraph_FR_conj_specif_coclass_matrix.eps')
         
         plot_igraph_3D_int_mat_labels(int_labelled_specif_matrix,gm_mask_coords,plot_igraph_FR_conj_coclass_matrix_file,labels = labels, layout = 'FR')
-        
-        
-        
-        
+                
     return plot_igraph_conj_coclass_matrix_file
     
     ############################## plot coclass
